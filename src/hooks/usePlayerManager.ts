@@ -46,9 +46,34 @@ export const usePlayerManager = (addLogEvent: (text: string, type: BattleEvent['
         setIsAdmin(false);
         return;
     }
+
     setIsValidatingKey(true);
+    
+    // Check environment
+    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    
+    // Fallback for Master Key (Offline/GH Pages)
+    if (key === 'MEU_ROBO_ADMIN') {
+        setIsAuthorized(true);
+        setIsAdmin(true);
+        localStorage.setItem('battleRoyale_licenseKey', key);
+        setIsValidatingKey(false);
+        return;
+    }
+
+    if (!isLocal) {
+        // Se estiver no GH Pages e não for a master key, não temos como validar
+        // sem um backend real. 
+        setIsAuthorized(false);
+        setIsAdmin(false);
+        setIsValidatingKey(false);
+        return;
+    }
+
     try {
         const res = await fetch(`/api/keys/validate?key=${key}`);
+        if (!res.ok) throw new Error('API Unavailable');
+        
         const data = await res.json();
         if (data.status === 'admin') {
             setIsAuthorized(true);
@@ -63,7 +88,11 @@ export const usePlayerManager = (addLogEvent: (text: string, type: BattleEvent['
             setIsAdmin(false);
         }
     } catch (e) {
-        console.error("Erro ao validar chave:", e);
+        console.warn("Erro ao validar chave (Backend indisponível):", e);
+        // Mesmo sem backend, se for a master key localmente a gente já tratou acima.
+        // Chaves normais precisam do backend.
+        setIsAuthorized(false);
+        setIsAdmin(false);
     } finally {
         setIsValidatingKey(false);
     }

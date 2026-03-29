@@ -69,12 +69,21 @@ const SetupView: React.FC<SetupViewProps> = (props) => {
   const [generatedKey, setGeneratedKey] = React.useState<string | null>(null);
 
   const generateNewKey = async () => {
+    // Check environment
+    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    
+    if (!isLocal) {
+        alert("O gerador de chaves só funciona rodando LOCALMENTE no computador.");
+        return;
+    }
+
     try {
         const res = await fetch(`/api/keys/generate?adminKey=${licenseKey}`);
+        if (!res.ok) throw new Error('API Unavailable');
         const data = await res.json();
         if (data.key) setGeneratedKey(data.key);
     } catch (e) {
-        alert("Erro ao gerar chave");
+        alert("Erro ao gerar chave (Backend indisponível)");
     }
   };
 
@@ -227,7 +236,12 @@ const SetupView: React.FC<SetupViewProps> = (props) => {
                             {botStatus === 'running' ? 'RODANDO...' : (isAuthorized ? 'INICIAR ROBÔ' : 'BLOQUEADO')}
                         </button>
                     </div>
-                    {!isAuthorized && <p className="text-[9px] text-blue-400 font-bold uppercase tracking-widest">Insira uma chave para liberar a extração automático</p>}
+                    {(() => {
+                        const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+                        if (!isAuthorized) return <p className="text-[9px] text-blue-400 font-bold uppercase tracking-widest text-center">Insira uma chave para liberar a extração automática</p>;
+                        if (!isLocal) return <p className="text-[9px] text-yellow-500 font-bold uppercase tracking-widest text-center">O Robô só funciona localmente. No site, carregue um arquivo coletado anteriormente.</p>;
+                        return null;
+                    })()}
                     
                     {botStatus !== 'idle' && (
                         <div className="w-full mt-4 bg-black/80 rounded-lg p-3 h-32 overflow-y-auto font-mono text-[10px] border border-white/10">
