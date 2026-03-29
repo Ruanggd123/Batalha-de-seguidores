@@ -1,0 +1,21 @@
+{
+  "name": "Follower Battle Royale",
+  "short_name": "Follower BR",
+  "description": "A fun battle royale simulator where you can import a JSON file of your followers, who will be assigned random powers and fight until only one winner remains. The arena dynamically visualizes the fighters, zooming in as their numbers dwindle.",
+  "icons": [
+    {
+      "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxOTIiIGhlaWdodD0iMTkyIiB2aWV3Qm94PSIwIDAgNTEyIDUxMiI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJncmFkIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdHlsZT0ic3RvcC1jb2xvcjojYTg1NWY3O3N0b3Atb3BhY2l0eToxIiAvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3R5bGU9InN0b3AtY29sb3I6I2VjNDg5OTtzdG9wLW9wYWNpdHk6MSIgLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgcng9Ijk2IiBmaWxsPSIjMGYwNzFlIi8+PHBhdGggZD0iTTEwNi41LDQwNS41IEwxMDYuNSwyMDggTDE4MCwxMjggTDI1NiwyMDggTDMzMiwxMjggTDQwNS41LDIwOCBMNDA1LjUsNDA1LjUgWiIgZmlsbD0idXJsKCNncmFkKSIgc3Ryb2tlPSIjZmFjYzE1IiBzdHJva2Utd2lkdGg9IjE2IiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+PGNpcmNsZSBjeD0iMTgwIiBjeT0iMjcwIiByPSIyNCIgZmlsbD0iI2ZhY2MxNSIgLz48Y2lyY2xlIGN4PSIzMzIiIGN5PSIyNzAiIHI9IjI0IiBmaWxsPSIjZmFjYzE1IiAvPjxjaXJjbGUgY3g9IjI1NiIgY3k9IjM1MCIgcj0iMzIiIGZpbGw9IiNmYWNjMTUiIC8+PC9zdmc+",
+      "type": "image/svg+xml",
+      "sizes": "192x192"
+    },
+    {
+      "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MTIiIGhlaWdodD0iNTEyIiB2aWV3Qm94PSIwIDAgNTEyIDUxMiI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJncmFkIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdHlsZT0ic3RvcC1jb2xvcjojYTg1NWY3O3N0b3Atb3BhY2l0eToxIiAvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3R5bGU9InN0b3AtY29sb3I6I2VjNDg5OTtzdG9wLW9wYWNpdHk6MSIgLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgcng9Ijk2IiBmaWxsPSIjMGYwNzFlIi8+PHBhdGggZD0iTTEwNi41LDQwNS41IEwxMDYuNSwyMDggTDE4MCwxMjggTDI1NiwyMDggTDMzMiwxMjggTDQwNS41LDIwOCBMNDA1LjUsNDA1LjUgWiIgZmlsbD0idXJsKCNncmFkKSIgc3Ryb2tlPSIjZmFjYzE1IiBzdHJva2Utd2lkdGg9IjE2IiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+PGNpcmNsZSBjeD0iMTgwIiBjeT0iMjcwIiByPSIyNCIgZmlsbD0iI2ZhY2MxNSIgLz48Y2lyY2xlIGN4PSIzMzIiIGN5PSIyNzAiIHI9IjI0IiBmaWxsPSIjZmFjYzE1IiAvPjxjaXJjbGUgY3g9IjI1NiIgY3k9IjM1MCIgcj0iMzIiIGZpbGw9IiNmYWNjMTUiIC8+PC9zdmc+",
+      "type": "image/svg+xml",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#0f071e",
+  "background_color": "#0f071e"
+}

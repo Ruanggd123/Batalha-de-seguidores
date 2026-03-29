@@ -1,0 +1,8 @@
+{
+  "name": "Follower Battle Royale",
+  "description": "A fun battle royale simulator where you can import a JSON file of your followers, who will be assigned random powers and fight until only one winner remains. The arena dynamically visualizes the fighters, zooming in as their numbers dwindle.",
+  "requestFramePermissions": [
+    "display-capture",
+    "microphone"
+  ]
+}
