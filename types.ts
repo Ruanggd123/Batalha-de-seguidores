@@ -1,8 +1,8 @@
-
 export interface Player {
   id: number;
   name: string;
   imageUrl: string;
+  instagramUrl?: string; // URL to the player's profile
   hp: number;
   maxHp: number;
   isAlive: boolean;
@@ -24,17 +24,7 @@ export interface BattleEvent {
   type: 'attack' | 'elimination' | 'info' | 'winner' | 'aoe' | 'commentary';
 }
 
-// Fix: Added missing CommentaryResult interface to resolve import error in services/geminiService.ts.
-export interface CommentaryResult {
-  text: string;
-  audioB64: string;
-}
-
-// Fix: Added missing BattleSummary interface to resolve import error in services/geminiService.ts.
-export interface BattleSummary {
-  narrative: string;
-  duration: string;
-}
+// Game States
 
 export enum GameState {
   AwaitingPlayers = 'AwaitingPlayers',
@@ -43,6 +33,8 @@ export enum GameState {
   Running = 'Running',
   Finished = 'Finished',
 }
+
+export type Platform = 'Instagram' | 'TikTok';
 
 export enum GameMode {
   Classic = 'Classic',

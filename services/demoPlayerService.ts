@@ -1,5 +1,7 @@
 // A simple service to generate demo players for spectator mode.
 
+import { DEFAULT_AVATAR } from '../constants/assets';
+
 const demoNames = [
   "CyberNinja", "PixelPirate", "GlitchWitch", "DataDragon", "QuantumQueen",
   "SynthSamurai", "VoidViper", "ChronoCaster", "MechaMage", "GridGuardian",
@@ -20,7 +22,7 @@ const demoNames = [
 export const generateDemoPlayers = (count: number): { name: string; imageUrl: string }[] => {
   const players = [];
   const usedNames = new Set<string>();
-  const safeCount = Math.min(count, demoNames.length * 1000); // Prevent infinite loop if count is too high
+  const safeCount = Math.min(count, 1000000); // Allow up to 1 million players for high-end testing
 
   for (let i = 0; i < safeCount; i++) {
     let name = demoNames[i % demoNames.length];
@@ -33,8 +35,7 @@ export const generateDemoPlayers = (count: number): { name: string; imageUrl: st
 
     players.push({
       name,
-      // Use a unique seed for each player to get different images
-      imageUrl: `https://picsum.photos/seed/${name}/96/96`,
+      imageUrl: `https://api.dicebear.com/7.x/pixel-art/svg?seed=${encodeURIComponent(name)}`,
     });
   }
 

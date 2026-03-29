@@ -1,0 +1,88 @@
+name: Update Instagram Followers
+
+on:
+  workflow_dispatch:
+    inputs:
+      username:
+        description: 'Seu usuário do Instagram (sem @)'
+        required: true
+        default: 'ruanggd123'
+  schedule:
+    - cron: '0 0 * * *' # Executa todo dia à meia-noite (UTC)
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+# Permite apenas um deploy por vez
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  update-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests beautifulsoup4
+
+      - name: Configure Cookies
+        run: |
+          echo '${{ secrets.INSTAGRAM_COOKIES }}' > cookies.json
+
+      - name: Run Extraction Script
+        run: |
+          USERNAME="${{ github.event.inputs.username }}"
+          if [ -z "$USERNAME" ]; then
+            USERNAME="ruanggd123"
+          fi
+          python instagram_v10_minimalista.py $USERNAME 100000
+
+      - name: Commit results
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/followers.json
+          git commit -m "🤖 Atualização automática de seguidores: @${{ github.event.inputs.username || 'ruanggd123' }}" || echo "Nenhuma mudança para commitar"
+          # Não fazemos push aqui para evitar loops, o build vai usar o arquivo local gerado
+          
+      # --- AGORA FAZ O BUILD E DEPLOY DO SITE ATUALIZADO ---
+      
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Instalar Dependências Node
+        run: npm install
+
+      - name: Build do Site
+        run: npm run build
+
+      - name: Configurar GitHub Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload do Artefato (dist)
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './dist'
+
+      - name: Deploy para GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+        
+      # Opcional: Push do json atualizado para o histórico do repo
+      - name: Push followers.json
+        run: git push
