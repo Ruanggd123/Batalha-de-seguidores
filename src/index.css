@@ -1,0 +1,61 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --neon-purple: #a855f7;
+  --neon-pink: #ec4899;
+  --neon-cyan: #22d3ee;
+  --neon-orange: #fb923c;
+  --neon-red: #ef4444;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background-color: #0c0a15;
+  color: white;
+  font-family: 'Inter', sans-serif;
+}
+
+canvas {
+  display: block;
+}
+
+/* Custom Scrollbar for Neon Aesthetic */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(168, 85, 247, 0.3);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(168, 85, 247, 0.5);
+}
+
+/* Transitions */
+.fade-enter {
+  opacity: 0;
+}
+.fade-enter-active {
+  opacity: 1;
+  transition: opacity 500ms ease-in;
+}
+
+/* Animation Utilities */
+@keyframes title-glow {
+  0%, 100% { text-shadow: 0 0 10px var(--glow-color, rgba(168, 85, 247, 0.5)); }
+  50% { text-shadow: 0 0 25px var(--glow-color, rgba(168, 85, 247, 0.8)); }
+}
+
+.animate-title-glow {
+  animation: title-glow 3s infinite ease-in-out;
+}
