@@ -182,6 +182,16 @@ export const usePlayerManager = (addLogEvent: (text: string, type: BattleEvent['
 
   const scrapeFromBot = useCallback(async (username: string) => {
     if (!username) return;
+
+    // Verificar se estamos em ambiente local (o robô só funciona localmente)
+    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    
+    if (!isLocal) {
+        setBotStatus('error');
+        setBotError('O robô só funciona rodando LOCALMENTE no computador. No GitHub Pages, use o botão "Carregar Dados Já Coletados" ou cole os dados abaixo.');
+        return;
+    }
+
     setBotStatus('running');
     setBotError(null);
     setBotLogs([]);
