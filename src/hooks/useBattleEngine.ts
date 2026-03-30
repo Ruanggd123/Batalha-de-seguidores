@@ -97,8 +97,17 @@ export const useBattleEngine = (
   const lastSpawnTickRef = useRef<number>(0);
   const startTimeRef = useRef<number>(0);
   const loadingCountRef = useRef<number>(0);
+  const defaultImageRef = useRef<HTMLImageElement | null>(null);
   const MAX_CONCURRENT_LOADS = 10; // Limit simultaneous network requests
   const TOP_MARGIN = 140; // Safety bar at the top for HUD visibility
+  const BOTTOM_MARGIN = 80; // Safety bar at the bottom for Control Panel
+  const DEFAULT_PROFILE_IMAGE = 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png';
+
+  useEffect(() => {
+    const img = new Image();
+    img.src = DEFAULT_PROFILE_IMAGE;
+    img.onload = () => { defaultImageRef.current = img; };
+  }, []);
 
   // Recording states
 
@@ -324,7 +333,7 @@ export const useBattleEngine = (
                 const pSize = getPlayerSize(updatedPlayers.length) * playerSizeMultiplier;
                 const r = pSize / 2;
                 nx = r + (Math.random() * (lw - pSize));
-                ny = TOP_MARGIN + r + (Math.random() * (lh - pSize - TOP_MARGIN));
+                ny = TOP_MARGIN + r + (Math.random() * (lh - pSize - TOP_MARGIN - BOTTOM_MARGIN));
             }
             return { ...p, x: nx, y: ny, vx: 0, vy: 0 };
         });
@@ -519,7 +528,8 @@ export const useBattleEngine = (
 
                 if (gameMode === GameMode.Classic || gameMode === GameMode.Vortex) {
                   if (nx < r) { nx = r; nVx *= -0.5; } if (nx > lw - r) { nx = lw - r; nVx *= -0.5; }
-                  if (ny < r + TOP_MARGIN) { ny = r + TOP_MARGIN; nVy *= -0.5; } if (ny > lh - r) { ny = lh - r; nVy *= -0.5; }
+                  if (ny < r + TOP_MARGIN) { ny = r + TOP_MARGIN; nVy *= -0.5; } 
+                  if (ny > lh - r - BOTTOM_MARGIN) { ny = lh - r - BOTTOM_MARGIN; nVy *= -0.5; }
                 } else if (gameMode === GameMode.GravityAbyss) {
                     const sr = Math.min(lw, lh) * GRAVITY_ABYSS_RADIUS_FACTOR;
                     const dcx = nx - lcx; const dcy = ny - lcy; const dcf = Math.sqrt(dcx*dcx + dcy*dcy);
@@ -618,8 +628,13 @@ export const useBattleEngine = (
                                 loadingCountRef.current--;
                             };
                             img.onerror = () => { 
-                                console.warn("Failed to load image for", p.name, "falling back to color");
-                                imageCache.current[safeUrl] = 'failed' as any; 
+                                console.warn("Failed to load image for", p.name, "falling back to default");
+                                // Load the default image into the cache for this player
+                                const defaultImg = new Image();
+                                defaultImg.src = DEFAULT_PROFILE_IMAGE;
+                                defaultImg.onload = () => {
+                                    imageCache.current[safeUrl] = defaultImg;
+                                };
                                 loadingCountRef.current--;
                             };
                             img.src = safeUrl;
@@ -631,9 +646,15 @@ export const useBattleEngine = (
                         ctx.closePath(); ctx.clip();
                         ctx.drawImage(img, p.x - r, p.y - r, pSize, pSize);
                         ctx.restore();
+                    } else if (defaultImageRef.current) {
+                        // Use pre-loaded default image as immediate fallback
+                        ctx.save(); ctx.beginPath(); ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+                        ctx.closePath(); ctx.clip();
+                        ctx.drawImage(defaultImageRef.current, p.x - r, p.y - r, pSize, pSize);
+                        ctx.restore();
                     } else {
-                        // High Performance Fallback
-                        if (currentAliveCount > PIXEL_MODE_THRESHOLD) {
+                        // High Performance Fallback if even default isn't loaded
+                        if (currentAliveCount > 2500) {
                              ctx.fillStyle = getColorFromId(p.id);
                              ctx.fillRect(p.x - r, p.y - r, pSize, pSize);
                         } else {
