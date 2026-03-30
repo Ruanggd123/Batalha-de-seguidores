@@ -301,10 +301,7 @@ export const usePlayerManager = (addLogEvent: (text: string, type: BattleEvent['
     }
   }, [initializePlayers]);
 
-  // auto-load latest results on mount (silent)
-  useEffect(() => {
-    loadInstagramData(true);
-  }, [loadInstagramData]);
+  // auto-load removed to ensure app starts at setup screen
 
   const scrapeFromBot = useCallback(async (username: string) => {
     if (!username) return;
