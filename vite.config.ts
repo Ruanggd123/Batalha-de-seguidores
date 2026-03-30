@@ -36,7 +36,7 @@ export default defineConfig(({ mode }) => {
         {
           name: 'license-bridge',
           configureServer(server) {
-            server.middlewares.use((req, res, next) => {
+            server.middlewares.use(async (req, res, next) => {
               try {
                 // 1. Validar Chave
                 if (req.url && req.url.startsWith('/api/keys/validate')) {
@@ -81,14 +81,24 @@ export default defineConfig(({ mode }) => {
                   const data = getKeys();
                   
                   let isAuthorized = (key === data.masterKey);
-                  let usageKey = null;
-
-                  if (!isAuthorized) {
-                      usageKey = data.validKeys.find(k => k.id === key && !k.used);
-                      if (usageKey) isAuthorized = true;
+                  
+                  // Se não for a master key, tenta validar no Firebase (via REST API para ser mais leve)
+                  if (!isAuthorized && key) {
+                      try {
+                          const firebaseResponse = await fetch(`https://keys-6d05b-default-rtdb.firebaseio.com/licenses/${key}.json`);
+                          const firebaseData = await firebaseResponse.json();
+                          
+                          if (firebaseData && !firebaseData.used) {
+                              isAuthorized = true;
+                              console.log(`[API] Chave validada via Firebase Cloud: ${key}`);
+                          }
+                      } catch (err) {
+                          console.error("[API] Falha ao consultar Firebase para o Robô:", err);
+                      }
                   }
 
                   if (!isAuthorized) {
+                     console.log(`[API] Acesso Negado: Chave ${key} não encontrada ou já utilizada.`);
                      res.statusCode = 401;
                      res.end(JSON.stringify({ error: 'Chave inválida ou já utilizada!' }));
                      return;
@@ -101,11 +111,8 @@ export default defineConfig(({ mode }) => {
                     return;
                   }
 
-                  // Só queima a chave se o robô REALMENTE puder ser iniciado
-                  if (usageKey) {
-                      usageKey.used = true;
-                      fs.writeFileSync(KEYS_FILE, JSON.stringify(data, null, 2));
-                  }
+                  // Notifica o início
+                  console.log(`[API] Iniciando Robô para @${username} (Autorizado por ${key})`);
                   
                   res.setHeader('Content-Type', 'text/event-stream');
                   res.setHeader('Cache-Control', 'no-cache');
