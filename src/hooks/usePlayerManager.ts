@@ -136,11 +136,12 @@ export const usePlayerManager = (addLogEvent: (text: string, type: BattleEvent['
 
   const initializePlayers = useCallback((parsedPlayers: { name: string; imageUrl: string }[]) => {
     if (parsedPlayers.length === 0) {
-      alert("Nenhum jogador encontrado.");
+      setBotError("Nenhum jogador encontrado no arquivo.");
+      setBotStatus('error');
       return;
     }
     totalPlayersRef.current = parsedPlayers.length;
-    addLogEvent(`Carregados ${parsedPlayers.length} lutadores na arena! A batalha será épica!`, 'info');
+    addLogEvent(`Carregados ${parsedPlayers.length} lutadores na arena!`, 'info');
     
     const initialPlayers = parsedPlayers.map((p, index) => ({
         ...p,
@@ -206,10 +207,12 @@ export const usePlayerManager = (addLogEvent: (text: string, type: BattleEvent['
             }).filter(p => p !== null) as any[];
             initializePlayers(parsedPlayers);
         } catch (e) {
-            alert('Falha ao analisar os dados.');
+            console.error("Erro no JSON:", e);
+            setBotError('Falha ao processar dados: Formato JSON inválido.');
+            addLogEvent('Erro ao analisar os dados colados/enviados.', 'info');
         }
     }, 50);
-  }, [addLogEvent, initializePlayers]);
+}, [addLogEvent, initializePlayers]);
 
   const processFile = useCallback((file?: File) => {
     if (!file) return;
@@ -226,18 +229,42 @@ export const usePlayerManager = (addLogEvent: (text: string, type: BattleEvent['
     processFile(file);
   }, [processFile]);
 
-  const loadInstagramData = useCallback(async (silent = false) => {
-    if (!silent) setIsAutoLoading(true);
+  const loadInstagramData = useCallback(async (isSilent = false) => {
+    if (!isSilent) setIsAutoLoading(true);
     try {
-      const response = await fetch('./followers.json');
-      if (!response.ok) return;
+      // Use better URL path (relative to root)
+      const url = `followers.json?t=${Date.now()}`;
+      const response = await fetch(url);
+      
+      if (!response.ok) {
+        if (!isSilent) {
+            setBotError(`Erro ${response.status}: Arquivo não encontrado no servidor.`);
+            setBotStatus('error');
+        }
+        return;
+      }
+
       const data = await response.json();
-      if (Array.isArray(data)) initializePlayers(data);
+      if (Array.isArray(data) && data.length > 0) {
+        initializePlayers(data);
+        if (!isSilent) {
+            setBotStatus('success');
+            setBotLogs(prev => [...prev, '✅ Lista de seguidores carregada com sucesso!']);
+        }
+      } else {
+        if (!isSilent) {
+            setBotError('O arquivo de dados está vazio ou no formato incorreto.');
+            setBotStatus('error');
+        }
+      }
     } catch (e) {
-        // Silently ignore 404 or parsing errors on auto-load
-        console.warn("Followers data not yet available or invalid format.");
+        console.warn("Followers data not available:", e);
+        if (!isSilent) {
+            setBotError('Falha ao ler os dados. Verifique a internet ou aguarde o robô finalizar.');
+            setBotStatus('error');
+        }
     } finally {
-      if (!silent) setIsAutoLoading(false);
+      if (!isSilent) setIsAutoLoading(false);
     }
   }, [initializePlayers]);
 
