@@ -30,14 +30,14 @@ interface SetupViewProps {
   setTargetDuration: (dur: number) => void;
   isSpectatorMode: boolean;
   startSpectatorMode: () => void;
-  processJsonData: (content: string, platform: Platform) => void;
+  processData: (content: string) => void;
   handleFileUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleChooseFileClick: () => void;
   handleDragOver: (e: React.DragEvent) => void;
   handleDragLeave: (e: React.DragEvent) => void;
   handleDrop: (e: React.DragEvent) => void;
   fileInputRef: React.RefObject<HTMLInputElement>;
-  loadInstagramData: () => void;
+  loadInstagramData: (force: boolean) => void;
   isAutoLoading: boolean;
   scrapeFromBot: (username: string) => void;
   botStatus: 'idle' | 'running' | 'success' | 'error';
@@ -60,7 +60,7 @@ const SetupView: React.FC<SetupViewProps> = (props) => {
     isNarrationEnabled, setIsNarrationEnabled, bgmVolume, setBgmVolume,
     sfxVolume, setSfxVolume, narrationVolume, setNarrationVolume,
     profileName, setProfileName, platform, setPlatform, jsonInput, setJsonInput,
-    isSpectatorMode, startSpectatorMode, processJsonData, handleFileUpload,
+    isSpectatorMode, startSpectatorMode, processData, handleFileUpload,
     handleChooseFileClick, handleDragOver, handleDragLeave, handleDrop,
     fileInputRef, availableVoices, selectedVoiceURI, setSelectedVoiceURI,
     targetDuration, setTargetDuration, loadInstagramData, isAutoLoading,
@@ -241,7 +241,8 @@ const SetupView: React.FC<SetupViewProps> = (props) => {
                                  }
                              }} 
                              disabled={botStatus === 'running' || !instagramSearch || !isAuthorized}
-                             className={`bg-gradient-to-r from-pink-600 to-purple-600 hover:scale-105 text-white font-black py-3 px-6 rounded-lg transition-all disabled:opacity-50 disabled:grayscale`}>
+                             className={`bg-gradient-to-r from-pink-600 to-purple-600 hover:scale-105 text-white font-black py-3 px-6 rounded-lg transition-all disabled:opacity-50 disabled:grayscale flex items-center justify-center gap-2`}>
+                            {botStatus === 'running' && <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>}
                             {botStatus === 'running' ? 'RODANDO...' : (isAuthorized ? 'INICIAR ROBÔ' : 'BLOQUEADO')}
                         </button>
                     </div>
@@ -255,12 +256,34 @@ const SetupView: React.FC<SetupViewProps> = (props) => {
                                     <p className="text-[10px] text-yellow-500 font-bold uppercase tracking-widest px-2 py-1 bg-yellow-500/10 rounded border border-yellow-500/20">🚀 O robô agora é 100% automático via GitHub API</p>
                                 </div>
                                 <button 
-                                    onClick={loadInstagramData} 
+                                    onClick={() => loadInstagramData(true)} 
                                     disabled={isAutoLoading}
                                     className={`w-full bg-blue-600 hover:bg-blue-500 hover:scale-105 text-white font-black py-4 px-6 rounded-lg transition-all border-b-4 border-blue-800 active:border-b-0 active:translate-y-1 relative overflow-hidden group ${isAutoLoading ? 'opacity-50 grayscale cursor-not-allowed' : ''}`}>
                                     <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
-                                    {isAutoLoading ? 'CARREGANDO...' : '📥 RECARREGAR LISTA ATUALIZADA'}
+                                    <div className="flex items-center justify-center gap-2">
+                                        {isAutoLoading && <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>}
+                                        {isAutoLoading ? 'LENDO ARQUIVO...' : '📥 RECARREGAR LISTA ATUALIZADA'}
+                                    </div>
                                 </button>
+
+                                <div className="grid grid-cols-2 gap-2 mt-2">
+                                    <a 
+                                        href="https://github.com/Ruanggd123/Batalha-de-seguidores/actions" 
+                                        target="_blank" 
+                                        rel="noreferrer"
+                                        className="bg-gray-800 hover:bg-gray-700 text-[9px] font-bold text-gray-300 py-2 px-3 rounded text-center border border-white/10"
+                                    >
+                                        👁️ ACOMPANHAR ROBÔ
+                                    </a>
+                                    <a 
+                                        href="https://ruanggd123.github.io/Batalha-de-seguidores/followers.json" 
+                                        target="_blank" 
+                                        rel="noreferrer"
+                                        className="bg-gray-800 hover:bg-gray-700 text-[9px] font-bold text-gray-300 py-2 px-3 rounded text-center border border-white/10"
+                                    >
+                                        📂 VER ARQUIVO JSON
+                                    </a>
+                                </div>
                             </div>
                         );
                         return null;
@@ -285,7 +308,7 @@ const SetupView: React.FC<SetupViewProps> = (props) => {
                       placeholder="Cole os dados aqui..." 
                       className="w-full h-24 bg-black/40 border border-white/20 rounded-lg p-3 text-gray-400 font-mono text-xs"
                   />
-                  <button onClick={() => processJsonData(jsonInput, platform)} disabled={!jsonInput.trim()} className="w-full bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 px-4 rounded-lg">
+                  <button onClick={() => processData(jsonInput)} disabled={!jsonInput.trim()} className="w-full bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 px-4 rounded-lg">
                     CARREGAR DADOS COLADOS
                   </button>
                 </div>

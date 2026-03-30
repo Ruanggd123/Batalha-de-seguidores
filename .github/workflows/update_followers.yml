@@ -15,10 +15,10 @@ permissions:
   pages: write
   id-token: write
 
-# Permite apenas um deploy por vez
+# Permite processos simultâneos por usuário para não cancelar a extração
 concurrency:
-  group: "pages"
-  cancel-in-progress: true
+  group: "update-${{ github.event.inputs.username || 'default' }}"
+  cancel-in-progress: false
 
 jobs:
   update-and-deploy:
@@ -47,7 +47,7 @@ jobs:
           if [ -z "$USERNAME" ]; then
             USERNAME="ruanggd123"
           fi
-          python instagram_v10_minimalista.py $USERNAME 100000
+          python -u instagram_v10_minimalista.py $USERNAME 100000
 
       - name: Commit results
         run: |

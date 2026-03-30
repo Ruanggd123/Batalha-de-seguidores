@@ -192,37 +192,58 @@ export const usePlayerManager = (addLogEvent: (text: string, type: BattleEvent['
     }
   }, []);
 
-  const processJsonData = useCallback((content: string, selectedPlatform: Platform) => {
+  const processData = useCallback((content: string) => {
     if (!content.trim()) return;
-    addLogEvent('Processando dados...', 'info');
+    addLogEvent('Analisando formato dos dados...', 'info');
+    
+    // Pequeno delay para feedback visual
     setTimeout(() => {
         try {
-            let data = JSON.parse(content);
-            let sourcePlayers = Array.isArray(data) ? data : [data];
-            const parsedPlayers = sourcePlayers.map(p => {
-                if (typeof p === 'string') return { name: p.trim(), imageUrl: DEFAULT_AVATAR };
-                let name = p.name || p.username || p.full_name || p.id;
-                let imageUrl = p.profile_pic_url || p.profile_pic_url_hd || p.avatar_url || DEFAULT_AVATAR;
-                return name ? { name: name.trim(), imageUrl: getSafeImageUrl(imageUrl) } : null;
-            }).filter(p => p !== null) as any[];
-            initializePlayers(parsedPlayers);
-        } catch (e) {
-            console.error("Erro no JSON:", e);
-            setBotError('Falha ao processar dados: Formato JSON inválido.');
-            addLogEvent('Erro ao analisar os dados colados/enviados.', 'info');
+            // Tenta JSON primeiro
+            if (content.trim().startsWith('[') || content.trim().startsWith('{')) {
+                const data = JSON.parse(content);
+                const sourcePlayers = Array.isArray(data) ? data : [data];
+                const parsed = sourcePlayers.map(p => {
+                    if (typeof p === 'string') return { name: p.trim(), imageUrl: DEFAULT_AVATAR };
+                    let name = p.name || p.username || p.full_name || p.id;
+                    let imageUrl = p.profile_pic_url || p.profile_pic_url_hd || p.avatar_url || DEFAULT_AVATAR;
+                    return name ? { name: name.trim(), imageUrl: getSafeImageUrl(imageUrl) } : null;
+                }).filter(p => p !== null) as any[];
+                
+                if (parsed.length > 0) {
+                    initializePlayers(parsed);
+                    setBotStatus('success');
+                } else {
+                    throw new Error("Nenhum seguidor válido encontrado no JSON.");
+                }
+            } else {
+                // Tenta CSV
+                const parsed = parseCsvData(content);
+                if (parsed && parsed.length > 0) {
+                    initializePlayers(parsed);
+                    setBotStatus('success');
+                } else {
+                    throw new Error("Não foi possível identificar o formato (JSON ou CSV).");
+                }
+            }
+        } catch (e: any) {
+            console.error("Erro no processamento:", e);
+            setBotError(`Erro: ${e.message || 'Formato de arquivo inválido.'}`);
+            addLogEvent('Falha ao processar os dados.', 'info');
+            setBotStatus('error');
         }
-    }, 50);
-}, [addLogEvent, initializePlayers]);
+    }, 100);
+  }, [addLogEvent, initializePlayers, parseCsvData]);
 
   const processFile = useCallback((file?: File) => {
     if (!file) return;
     const reader = new FileReader();
     reader.onload = (e) => {
         const content = e.target?.result as string;
-        processJsonData(content, platform);
+        processData(content);
     };
     reader.readAsText(file);
-  }, [processJsonData, platform]);
+  }, [processData]);
 
   const handleFileUpload = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -345,7 +366,7 @@ export const usePlayerManager = (addLogEvent: (text: string, type: BattleEvent['
     totalPlayersRef,
     initializePlayers,
     parseCsvData,
-    processJsonData,
+    processData,
     processFile,
     handleFileUpload,
     loadInstagramData,

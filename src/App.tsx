@@ -260,7 +260,7 @@ const App: React.FC = () => {
           availableVoices={audio.availableVoices}
           selectedVoiceURI={audio.selectedVoiceURI}
           setSelectedVoiceURI={audio.setSelectedVoiceURI}
-          loadInstagramData={playerManager.loadInstagramData}
+          processData={playerManager.processData}
           isAutoLoading={playerManager.isAutoLoading}
           scrapeFromBot={playerManager.scrapeFromBot}
           botStatus={playerManager.botStatus}
