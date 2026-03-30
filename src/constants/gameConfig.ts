@@ -29,7 +29,7 @@ export const MIN_PLAYER_SIZE = 3;
 export const MAX_PLAYER_SIZE = 150; 
 export const MIN_PLAYERS_FOR_MAX_SIZE = 10;
 export const MAX_PLAYERS_FOR_MIN_SIZE = 2500; // Curve starts rising here
-export const PIXEL_MODE_THRESHOLD = 500; // Use dots above 500
+export const PIXEL_MODE_THRESHOLD = 1000; // Use dots above 1000
 
 export const ATTACK_TRACER_THRESHOLD = 150;
 export const ATTACK_TRACER_LIFESPAN = 20;

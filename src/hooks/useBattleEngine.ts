@@ -597,7 +597,7 @@ export const useBattleEngine = (
 
             const pSize = getPlayerSize(currentAliveCount, lw) * playerSizeMultiplier;
             const r = pSize / 2;
-            const shouldDrawImage = currentAliveCount <= PIXEL_MODE_THRESHOLD; // Use defined threshold (500)
+            const shouldDrawImage = currentAliveCount <= PIXEL_MODE_THRESHOLD; 
 
             for (let i = 0; i < currentPlayers.length; i++) {
                 const p = currentPlayers[i];
@@ -643,12 +643,16 @@ export const useBattleEngine = (
                     }
                 } else {
                     // PERFORMANCE: Use rects instead of circles for massive player counts
-                    if (currentAliveCount > PIXEL_MODE_THRESHOLD) {
+                    if (currentAliveCount > 2500) {
                         ctx.fillStyle = getColorFromId(p.id);
                         ctx.fillRect(p.x - r, p.y - r, pSize, pSize);
                     } else {
                         ctx.beginPath(); ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
                         ctx.fillStyle = getColorFromId(p.id); ctx.fill();
+                        // Add a small border for better visibility of squares
+                        if (currentAliveCount > PIXEL_MODE_THRESHOLD) {
+                             ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.lineWidth = 1; ctx.stroke();
+                        }
                     }
                 }
 
@@ -662,13 +666,19 @@ export const useBattleEngine = (
                     ctx.fillRect(p.x - r, hpY, pSize * hpPercentage, 4);
                 }
 
-                if (p.isAlive && (currentAliveCount <= 150 || p.id === followedPlayerId)) {
+                if (p.isAlive && (currentAliveCount <= 300 || p.id === followedPlayerId)) {
                     // Capped font size (min 10px, max 22px) for a cleaner look in top-tier battles
                     const fS = Math.min(22, Math.max(10, pSize / 4.5));
-                    ctx.font = `900 ${fS}px Orbitron`; ctx.textAlign = 'center';
-                    ctx.shadowBlur = 4; ctx.shadowColor = 'black'; ctx.fillStyle = 'white';
+                    ctx.font = `900 ${fS}px "Inter", "Orbitron", sans-serif`; ctx.textAlign = 'center';
+                    // STROKE FIRST for better readability
+                    ctx.lineWidth = 4;
+                    ctx.strokeStyle = 'rgba(0,0,0,0.8)'; 
+                    ctx.strokeText(p.name, p.x, p.y + r + fS + 12);
+                    
+                    ctx.fillStyle = '#FFFFFF'; // Ensure pure white
+                    ctx.shadowBlur = 4; 
+                    ctx.shadowColor = 'rgba(0,0,0,1)'; 
                     ctx.fillText(p.name, p.x, p.y + r + fS + 12);
-                    ctx.strokeStyle = 'black'; ctx.lineWidth = 2; ctx.strokeText(p.name, p.x, p.y + r + fS + 12);
                     ctx.shadowBlur = 0;
                 }
                 ctx.globalAlpha = 1;
