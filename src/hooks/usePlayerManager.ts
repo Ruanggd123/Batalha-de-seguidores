@@ -193,7 +193,7 @@ export const usePlayerManager = (addLogEvent: (text: string, type: BattleEvent['
     
     if (!isLocal) {
         setBotStatus('error');
-        setBotError('O robô só funciona rodando LOCALMENTE no computador. No GitHub Pages, use o botão "Carregar Dados Já Coletados" ou cole os dados abaixo.');
+        setBotError('O Robô (Scraper) só funciona rodando LOCALMENTE. No GitHub, você pode atualizar os seguidores acessando a aba "Actions" e executando o workflow "Update Instagram Followers", ou simplesmente carregando um arquivo JSON manualmente.');
         return;
     }
 

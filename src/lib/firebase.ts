@@ -1,6 +1,6 @@
-import { initializeApp } from "firebase/app";
+import { initializeApp, getApp, getApps } from "firebase/app";
 import { getDatabase } from "firebase/database";
-import { getAnalytics } from "firebase/analytics";
+import { getAnalytics, isSupported } from "firebase/analytics";
 
 // Configuração fornecida pelo usuário
 const firebaseConfig = {
@@ -14,9 +14,14 @@ const firebaseConfig = {
   databaseURL: "https://keys-6d05b-default-rtdb.firebaseio.com/"
 };
 
-// Inicializa Firebase
-const app = initializeApp(firebaseConfig);
+// Inicializa Firebase (Singleton pattern)
+const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 export const database = getDatabase(app);
-export const analytics = typeof window !== 'undefined' ? getAnalytics(app) : null;
+
+// Analytics só funciona no browser e se suportado
+export const analytics = typeof window !== 'undefined' 
+  ? isSupported().then(yes => yes ? getAnalytics(app) : null).catch(() => null)
+  : null;
 
 export default app;
+

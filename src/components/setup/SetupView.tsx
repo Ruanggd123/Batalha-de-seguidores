@@ -239,7 +239,12 @@ const SetupView: React.FC<SetupViewProps> = (props) => {
                     {(() => {
                         const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
                         if (!isAuthorized) return <p className="text-[9px] text-blue-400 font-bold uppercase tracking-widest text-center">Insira uma chave para liberar a extração automática</p>;
-                        if (!isLocal) return <p className="text-[9px] text-yellow-500 font-bold uppercase tracking-widest text-center">O Robô só funciona localmente. No site, carregue um arquivo coletado anteriormente.</p>;
+                        if (!isLocal) return (
+                            <div className="text-center space-y-1">
+                                <p className="text-[10px] text-yellow-500 font-bold uppercase tracking-widest">⚠️ O Robô direto no site é apenas para uso LOCAL</p>
+                                <p className="text-[9px] text-gray-400 uppercase">Para atualizar no GitHub: vá na aba <span className="text-blue-400 font-bold">Actions</span> → <span className="text-blue-400">Update Instagram Followers</span></p>
+                            </div>
+                        );
                         return null;
                     })()}
                     
