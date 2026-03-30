@@ -47,10 +47,10 @@ export const SPAWN_ACCELERATION = 1.1; // 10% increase per batch
 export const SPAWN_INTERVAL_MS = 16; // 60fps-ish
 
 export const BGM_PLAYLIST = [
-  "https://opengameart.org/sites/default/files/battleThemeA.mp3",
-  "https://opengameart.org/sites/default/files/Visager_-_17_-_Fight_Loop.mp3",
-  "https://opengameart.org/sites/default/files/Visager_-_14_-_The_Final_Trap.mp3",
-  "https://opengameart.org/sites/default/files/Visager_-_05_-_The_Great_Lighthouse.mp3"
+  "https://cdn.pixabay.com/audio/2022/03/10/audio_c8c8a7305d.mp3", // Epic Battle Theme
+  "https://cdn.pixabay.com/audio/2022/01/18/audio_8233f2187b.mp3", // Cinematic Action
+  "https://cdn.pixabay.com/audio/2024/02/07/audio_f58f44d5d3.mp3", // Electronic Metal
+  "https://cdn.pixabay.com/audio/2023/10/24/audio_3d1e18d6e3.mp3"  // Fast Pace Action
 ];
 
 export const gameModeDetails = {

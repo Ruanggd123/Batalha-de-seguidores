@@ -206,7 +206,8 @@ export const usePlayerManager = (addLogEvent: (text: string, type: BattleEvent['
                 const parsed = sourcePlayers.map(p => {
                     if (typeof p === 'string') return { name: p.trim(), imageUrl: DEFAULT_AVATAR };
                     let name = p.name || p.username || p.full_name || p.id;
-                    let imageUrl = p.profile_pic_url || p.profile_pic_url_hd || p.avatar_url || DEFAULT_AVATAR;
+                    let imageUrl = p.profile_pic_url || p.profile_pic_url_hd || p.avatar_url;
+                    if (!imageUrl || imageUrl === '') imageUrl = DEFAULT_AVATAR;
                     return name ? { name: name.trim(), imageUrl: getSafeImageUrl(imageUrl) } : null;
                 }).filter(p => p !== null) as any[];
                 

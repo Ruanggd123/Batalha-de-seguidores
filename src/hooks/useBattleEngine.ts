@@ -98,7 +98,7 @@ export const useBattleEngine = (
   const startTimeRef = useRef<number>(0);
   const loadingCountRef = useRef<number>(0);
   const defaultImageRef = useRef<HTMLImageElement | null>(null);
-  const MAX_CONCURRENT_LOADS = 10; // Limit simultaneous network requests
+  const MAX_CONCURRENT_LOADS = 100; // Increased to 100 to support up to 1000 avatars quickly
   const TOP_MARGIN = 140; // Safety bar at the top for HUD visibility
   const BOTTOM_MARGIN = 80; // Safety bar at the bottom for Control Panel
   const DEFAULT_PROFILE_IMAGE = 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png';
@@ -607,7 +607,8 @@ export const useBattleEngine = (
 
             const pSize = getPlayerSize(currentAliveCount, lw) * playerSizeMultiplier;
             const r = pSize / 2;
-            const shouldDrawImage = currentAliveCount <= PIXEL_MODE_THRESHOLD; 
+            // PERFORMANCE: Draw images if the STARTING count is small OR once the current count drops below threshold
+            const shouldDrawImage = totalPlayersRef.current <= PIXEL_MODE_THRESHOLD || currentAliveCount <= PIXEL_MODE_THRESHOLD; 
 
             for (let i = 0; i < currentPlayers.length; i++) {
                 const p = currentPlayers[i];

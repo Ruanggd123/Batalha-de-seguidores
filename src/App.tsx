@@ -327,6 +327,7 @@ const App: React.FC = () => {
             battleLog={engine.battleLog}
             isControlPanelOpen={isControlPanelOpen}
             setIsControlPanelOpen={setIsControlPanelOpen}
+            resetGame={engine.resetGame}
             isReelMode={engine.isReelMode}
             setIsReelMode={engine.setIsReelMode}
             isNarrationEnabled={audio.isNarrationEnabled}
