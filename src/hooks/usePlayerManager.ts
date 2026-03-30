@@ -185,6 +185,11 @@ export const usePlayerManager = (addLogEvent: (text: string, type: BattleEvent['
     }
   }, [initializePlayers]);
 
+  // auto-load latest results on mount (silent)
+  useEffect(() => {
+    loadInstagramData(true);
+  }, [loadInstagramData]);
+
   const scrapeFromBot = useCallback(async (username: string) => {
     if (!username) return;
 

@@ -240,9 +240,18 @@ const SetupView: React.FC<SetupViewProps> = (props) => {
                         const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
                         if (!isAuthorized) return <p className="text-[9px] text-blue-400 font-bold uppercase tracking-widest text-center">Insira uma chave para liberar a extração automática</p>;
                         if (!isLocal) return (
-                            <div className="text-center space-y-1">
-                                <p className="text-[10px] text-yellow-500 font-bold uppercase tracking-widest">⚠️ O Robô direto no site é apenas para uso LOCAL</p>
-                                <p className="text-[9px] text-gray-400 uppercase">Para atualizar no GitHub: vá na aba <span className="text-blue-400 font-bold">Actions</span> → <span className="text-blue-400">Update Instagram Followers</span></p>
+                            <div className="w-full space-y-3">
+                                <div className="text-center space-y-1">
+                                    <p className="text-[10px] text-yellow-500 font-bold uppercase tracking-widest">⚠️ O Robô direto no site é apenas para uso LOCAL</p>
+                                    <p className="text-[9px] text-gray-400 uppercase">Para atualizar: aba <span className="text-blue-400 font-bold">Actions</span> → <span className="text-blue-400">Update Instagram Followers</span></p>
+                                </div>
+                                <button 
+                                    onClick={loadInstagramData} 
+                                    disabled={isAutoLoading}
+                                    className={`w-full bg-blue-600 hover:bg-blue-500 hover:scale-105 text-white font-black py-4 px-6 rounded-lg transition-all border-b-4 border-blue-800 active:border-b-0 active:translate-y-1 relative overflow-hidden group ${isAutoLoading ? 'opacity-50 grayscale cursor-not-allowed' : ''}`}>
+                                    <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
+                                    {isAutoLoading ? 'CARREGANDO...' : '📥 CARREGAR DADOS COLETADOS (GITHUB)'}
+                                </button>
                             </div>
                         );
                         return null;

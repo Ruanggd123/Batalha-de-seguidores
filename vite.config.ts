@@ -158,6 +158,8 @@ export default defineConfig(({ mode }) => {
       ],
       define: {
         'process.env.API_KEY': JSON.stringify(''),
+        'process.env.NODE_ENV': JSON.stringify('production'),
+        'import.meta.env.MODE': JSON.stringify('production'),
       },
       resolve: {
         alias: {
