@@ -19,11 +19,66 @@ export const usePlayerManager = (addLogEvent: (text: string, type: BattleEvent['
   
   // New States (Added for License System)
   const [licenseKey, setLicenseKey] = useState(() => localStorage.getItem('battleRoyale_licenseKey') || '');
+  const [githubToken, setGithubToken] = useState(() => localStorage.getItem('battleRoyale_githubToken') || '');
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isValidatingKey, setIsValidatingKey] = useState(false);
 
+  // Persistence for Github Token
+  useEffect(() => {
+    localStorage.setItem('battleRoyale_githubToken', githubToken);
+  }, [githubToken]);
+
+  // Trigger GitHub Action (Scraper) via API
+  const triggerGithubAction = useCallback(async (username: string) => {
+    if (!username) {
+        setBotStatus('error');
+        setBotError('Usuário não fornecido.');
+        return;
+    }
+
+    if (!githubToken) {
+        setBotStatus('error');
+        setBotError('GitHub Token não configurado para uso online.');
+        return;
+    }
+
+    setBotStatus('running');
+    setBotError(null);
+    setBotLogs(['Iniciando comando remoto via GitHub API...', 'Aguardando resposta do servidor...']);
+
+    try {
+        const response = await fetch('https://api.github.com/repos/Ruanggd123/Batalha-de-seguidores/actions/workflows/update_followers.yml/dispatches', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${githubToken}`,
+                'Accept': 'application/vnd.github+json',
+                'X-GitHub-Api-Version': '2022-11-28',
+            },
+            body: JSON.stringify({
+                ref: 'main',
+                inputs: {
+                    username: username.replace('@', ''),
+                }
+            })
+        });
+
+        if (response.status === 204) {
+            setBotStatus('success');
+            setBotLogs(prev => [...prev, '✅ SUCESSO! O GitHub começou a processar sua lista.', 'Aguarde cerca de 2-3 minutos e o site será atualizado sozinho.']);
+            addLogEvent(`Comando enviado ao GitHub para @${username}! A extração leva 2-3 min.`, 'info');
+        } else {
+            const data = await response.json().catch(() => ({}));
+            throw new Error(data.message || `Erro do GitHub: ${response.status}`);
+        }
+    } catch (err: any) {
+        setBotStatus('error');
+        setBotError(`Falha ao disparar Robô: ${err.message}`);
+    }
+  }, [githubToken, addLogEvent]);
+
   // --- 2. HOOKS: REFS ---
+
   const playersRef = useRef<Player[]>([]);
   const totalPlayersRef = useRef<number>(0);
   const allPlayersRef = useRef<Player[]>([]);
@@ -179,7 +234,8 @@ export const usePlayerManager = (addLogEvent: (text: string, type: BattleEvent['
       const data = await response.json();
       if (Array.isArray(data)) initializePlayers(data);
     } catch (e) {
-        console.error(e);
+        // Silently ignore 404 or parsing errors on auto-load
+        console.warn("Followers data not yet available or invalid format.");
     } finally {
       if (!silent) setIsAutoLoading(false);
     }
@@ -267,12 +323,14 @@ export const usePlayerManager = (addLogEvent: (text: string, type: BattleEvent['
     handleFileUpload,
     loadInstagramData,
     scrapeFromBot,
+    triggerGithubAction,
     isAutoLoading,
     botStatus,
     botError,
     botLogs,
     allPlayersRef,
     licenseKey, setLicenseKey,
+    githubToken, setGithubToken,
     isAuthorized,
     isAdmin,
     isValidatingKey,

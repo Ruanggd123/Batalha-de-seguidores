@@ -268,9 +268,12 @@ const App: React.FC = () => {
           botLogs={playerManager.botLogs}
           licenseKey={playerManager.licenseKey}
           setLicenseKey={playerManager.setLicenseKey}
+          githubToken={playerManager.githubToken}
+          setGithubToken={playerManager.setGithubToken}
           isAuthorized={playerManager.isAuthorized}
           isAdmin={playerManager.isAdmin}
           isValidatingKey={playerManager.isValidatingKey}
+          triggerGithubAction={playerManager.triggerGithubAction}
         />
       )}
       
