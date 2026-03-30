@@ -52,7 +52,6 @@ interface SetupViewProps {
   isDraggingOver?: boolean;
   triggerGithubAction: (username: string) => void;
   githubToken: string;
-  setGithubToken: (token: string) => void;
 }
 
 const SetupView: React.FC<SetupViewProps> = (props) => {
@@ -67,7 +66,7 @@ const SetupView: React.FC<SetupViewProps> = (props) => {
     targetDuration, setTargetDuration, loadInstagramData, isAutoLoading,
     scrapeFromBot, botStatus, botError, botLogs,
     licenseKey, setLicenseKey, isAuthorized, isAdmin, isValidatingKey,
-    isDraggingOver, triggerGithubAction, githubToken, setGithubToken
+    isDraggingOver, triggerGithubAction, githubToken
   } = props;
 
   const [instagramSearch, setInstagramSearch] = React.useState('');
@@ -252,30 +251,15 @@ const SetupView: React.FC<SetupViewProps> = (props) => {
                         
                         if (!isLocal) return (
                             <div className="w-full space-y-4">
-                                <div className="p-3 bg-gray-900/60 border border-blue-500/30 rounded-lg">
-                                    <label className="block text-[10px] font-bold text-blue-400 uppercase mb-1.5 flex justify-between">
-                                        GitHub Token (PAT)
-                                        <a href="https://github.com/settings/tokens?type=beta" target="_blank" rel="noreferrer" className="text-cyan-400 underline hover:text-cyan-300">Como criar?</a>
-                                    </label>
-                                    <input 
-                                        type="password"
-                                        value={githubToken}
-                                        onChange={(e) => setGithubToken(e.target.value)}
-                                        placeholder="github_pat_..."
-                                        className="w-full bg-black/40 border border-white/20 rounded-md p-2 text-xs text-white font-mono focus:outline-none focus:border-cyan-500"
-                                    />
-                                    <p className="text-[8px] text-gray-500 mt-2 uppercase">Necessário apenas no site online. Gera um 'Personal Access Token' com permissão de 'Actions'.</p>
-                                </div>
-
                                 <div className="text-center space-y-1">
-                                    <p className="text-[10px] text-yellow-500 font-bold uppercase tracking-widest px-2 py-1 bg-yellow-500/10 rounded border border-yellow-500/20">🚀 O robô rodará automático via GitHub Actions</p>
+                                    <p className="text-[10px] text-yellow-500 font-bold uppercase tracking-widest px-2 py-1 bg-yellow-500/10 rounded border border-yellow-500/20">🚀 O robô agora é 100% automático via GitHub API</p>
                                 </div>
                                 <button 
                                     onClick={loadInstagramData} 
                                     disabled={isAutoLoading}
                                     className={`w-full bg-blue-600 hover:bg-blue-500 hover:scale-105 text-white font-black py-4 px-6 rounded-lg transition-all border-b-4 border-blue-800 active:border-b-0 active:translate-y-1 relative overflow-hidden group ${isAutoLoading ? 'opacity-50 grayscale cursor-not-allowed' : ''}`}>
                                     <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
-                                    {isAutoLoading ? 'CARREGANDO...' : '📥 CARREGAR ÚLTIMA LISTA PRONTA'}
+                                    {isAutoLoading ? 'CARREGANDO...' : '📥 RECARREGAR LISTA ATUALIZADA'}
                                 </button>
                             </div>
                         );

@@ -19,7 +19,7 @@ export const usePlayerManager = (addLogEvent: (text: string, type: BattleEvent['
   
   // New States (Added for License System)
   const [licenseKey, setLicenseKey] = useState(() => localStorage.getItem('battleRoyale_licenseKey') || '');
-  const [githubToken, setGithubToken] = useState(() => localStorage.getItem('battleRoyale_githubToken') || '');
+  const [githubToken] = useState(() => (import.meta.env.VITE_GITHUB_TOKEN as string) || '');
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isValidatingKey, setIsValidatingKey] = useState(false);
@@ -39,7 +39,7 @@ export const usePlayerManager = (addLogEvent: (text: string, type: BattleEvent['
 
     if (!githubToken) {
         setBotStatus('error');
-        setBotError('GitHub Token não configurado para uso online.');
+        setBotError('Configuração de API do GitHub incompleta (VITE_GITHUB_TOKEN ausente).');
         return;
     }
 
@@ -330,7 +330,7 @@ export const usePlayerManager = (addLogEvent: (text: string, type: BattleEvent['
     botLogs,
     allPlayersRef,
     licenseKey, setLicenseKey,
-    githubToken, setGithubToken,
+    githubToken,
     isAuthorized,
     isAdmin,
     isValidatingKey,

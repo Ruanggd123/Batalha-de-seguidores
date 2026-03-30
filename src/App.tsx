@@ -269,7 +269,6 @@ const App: React.FC = () => {
           licenseKey={playerManager.licenseKey}
           setLicenseKey={playerManager.setLicenseKey}
           githubToken={playerManager.githubToken}
-          setGithubToken={playerManager.setGithubToken}
           isAuthorized={playerManager.isAuthorized}
           isAdmin={playerManager.isAdmin}
           isValidatingKey={playerManager.isValidatingKey}

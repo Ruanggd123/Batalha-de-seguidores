@@ -36,8 +36,10 @@ jobs:
       # Se você tiver o arquivo followers.json no repo, ele será usado.
       # Caso contrário, o build usará o que estiver na pasta public/ no momento.
 
-      - name: Build do Site
+      - name: Build
         run: npm run build
+        env:
+          VITE_GITHUB_TOKEN: ${{ secrets.VITE_GITHUB_TOKEN }}
 
       - name: Configurar GitHub Pages
         uses: actions/configure-pages@v4
