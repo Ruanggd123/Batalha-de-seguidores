@@ -67,6 +67,17 @@ export const usePlayerManager = (addLogEvent: (text: string, type: BattleEvent['
             setBotStatus('success');
             setBotLogs(prev => [...prev, '✅ SUCESSO! O GitHub começou a processar sua lista.', 'Aguarde cerca de 2-3 minutos e o site será atualizado sozinho.']);
             addLogEvent(`Comando enviado ao GitHub para @${username}! A extração leva 2-3 min.`, 'info');
+            
+            // Queimar a licença se não for admin
+            if (!isAdmin) {
+                const burned = await burnLicense(licenseKey);
+                if (burned) {
+                    addLogEvent('Chave de licença utilizada com sucesso.', 'info');
+                    setBotLogs(prev => [...prev, '🎫 LICENÇA CONSUMIDA: Esta chave não poderá ser usada novamente.']);
+                    // Opcional: Desautorizar após o uso para forçar nova chave no próximo uso
+                    // setIsAuthorized(false); 
+                }
+            }
         } else {
             const data = await response.json().catch(() => ({}));
             throw new Error(data.message || `Erro do GitHub: ${response.status}`);
@@ -335,6 +346,11 @@ export const usePlayerManager = (addLogEvent: (text: string, type: BattleEvent['
                             setBotStatus('success');
                             addLogEvent(`Extração concluída! Baixando arquivo...`, 'info');
                             
+                            // Queimar a licença se não for admin (Modo Local)
+                            if (!isAdmin) {
+                                await burnLicense(licenseKey);
+                            }
+
                             // Auto-download logic
                             const link = document.createElement('a');
                             link.href = './followers.json';
