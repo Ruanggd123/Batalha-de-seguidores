@@ -3,6 +3,8 @@ import { Player, Platform, BattleEvent } from '../types';
 import { INITIAL_HP } from '../constants/gameConfig';
 import { getSafeImageUrl } from '../utils/gameUtils';
 import { DEFAULT_AVATAR } from '../constants/assets';
+import { validateLicense, burnLicense } from '../services/licenseService';
+
 
 export const usePlayerManager = (addLogEvent: (text: string, type: BattleEvent['type']) => void) => {
   // --- 1. HOOKS: STATES (Keep order stable!) ---
@@ -39,7 +41,7 @@ export const usePlayerManager = (addLogEvent: (text: string, type: BattleEvent['
     if (saved) setProfileName(saved);
   }, []);
 
-  // License Validation Logic
+  // License Validation Logic (Powered by Firebase)
   const checkLicense = useCallback(async (key: string) => {
     if (!key) {
         setIsAuthorized(false);
@@ -49,37 +51,13 @@ export const usePlayerManager = (addLogEvent: (text: string, type: BattleEvent['
 
     setIsValidatingKey(true);
     
-    // Check environment
-    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    
-    // Fallback for Master Key (Offline/GH Pages)
-    if (key === 'MEU_ROBO_ADMIN') {
-        setIsAuthorized(true);
-        setIsAdmin(true);
-        localStorage.setItem('battleRoyale_licenseKey', key);
-        setIsValidatingKey(false);
-        return;
-    }
-
-    if (!isLocal) {
-        // Se estiver no GH Pages e não for a master key, não temos como validar
-        // sem um backend real. 
-        setIsAuthorized(false);
-        setIsAdmin(false);
-        setIsValidatingKey(false);
-        return;
-    }
-
     try {
-        const res = await fetch(`/api/keys/validate?key=${key}`);
-        if (!res.ok) throw new Error('API Unavailable');
-        
-        const data = await res.json();
-        if (data.status === 'admin') {
+        const result = await validateLicense(key);
+        if (result.status === 'admin') {
             setIsAuthorized(true);
             setIsAdmin(true);
             localStorage.setItem('battleRoyale_licenseKey', key);
-        } else if (data.status === 'valid') {
+        } else if (result.status === 'valid') {
             setIsAuthorized(true);
             setIsAdmin(false);
             localStorage.setItem('battleRoyale_licenseKey', key);
@@ -88,9 +66,7 @@ export const usePlayerManager = (addLogEvent: (text: string, type: BattleEvent['
             setIsAdmin(false);
         }
     } catch (e) {
-        console.warn("Erro ao validar chave (Backend indisponível):", e);
-        // Mesmo sem backend, se for a master key localmente a gente já tratou acima.
-        // Chaves normais precisam do backend.
+        console.warn("Erro ao validar chave global:", e);
         setIsAuthorized(false);
         setIsAdmin(false);
     } finally {

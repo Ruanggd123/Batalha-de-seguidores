@@ -1,6 +1,8 @@
 import React from 'react';
 import { GameMode, Platform } from '../../types';
 import { gameModeDetails, themes } from '../../constants/gameConfig';
+import { generateNewLicense } from '../../services/licenseService';
+
 
 interface SetupViewProps {
   gameMode: GameMode;
@@ -67,23 +69,21 @@ const SetupView: React.FC<SetupViewProps> = (props) => {
 
   const [instagramSearch, setInstagramSearch] = React.useState('');
   const [generatedKey, setGeneratedKey] = React.useState<string | null>(null);
+  const [isGenerating, setIsGenerating] = React.useState(false);
 
   const generateNewKey = async () => {
-    // Check environment
-    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    
-    if (!isLocal) {
-        alert("O gerador de chaves só funciona rodando LOCALMENTE no computador.");
-        return;
-    }
-
+    setIsGenerating(true);
     try {
-        const res = await fetch(`/api/keys/generate?adminKey=${licenseKey}`);
-        if (!res.ok) throw new Error('API Unavailable');
-        const data = await res.json();
-        if (data.key) setGeneratedKey(data.key);
+        const newKey = await generateNewLicense(licenseKey);
+        if (newKey) {
+            setGeneratedKey(newKey);
+        } else {
+            alert("Apenas o Administrador pode gerar chaves.");
+        }
     } catch (e) {
-        alert("Erro ao gerar chave (Backend indisponível)");
+        alert("Erro ao gerar chave global.");
+    } finally {
+        setIsGenerating(false);
     }
   };
 
