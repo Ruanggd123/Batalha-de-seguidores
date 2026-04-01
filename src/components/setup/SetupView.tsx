@@ -282,20 +282,19 @@ const SetupView: React.FC<SetupViewProps> = (props) => {
 
                                 <div className="grid grid-cols-2 gap-2 mt-2">
                                     <a 
+                                        href="./followers.json" 
+                                        download="followers.json"
+                                        className="bg-green-600 hover:bg-green-500 text-[11px] font-black text-white py-3 px-3 rounded-xl text-center border-b-4 border-green-800 active:border-b-0 active:translate-y-1 transition-all flex items-center justify-center gap-1"
+                                    >
+                                        💾 BAIXAR LISTA (JSON)
+                                    </a>
+                                    <a 
                                         href="https://github.com/Ruanggd123/Batalha-de-seguidores/actions" 
                                         target="_blank" 
                                         rel="noreferrer"
-                                        className="bg-gray-800 hover:bg-gray-700 text-[9px] font-bold text-gray-300 py-2 px-3 rounded text-center border border-white/10"
+                                        className="bg-gray-800 hover:bg-gray-700 text-[11px] font-bold text-gray-300 py-3 px-3 rounded-xl text-center border border-white/10 flex items-center justify-center gap-1"
                                     >
-                                        👁️ ACOMPANHAR ROBÔ
-                                    </a>
-                                    <a 
-                                        href="https://ruanggd123.github.io/Batalha-de-seguidores/followers.json" 
-                                        target="_blank" 
-                                        rel="noreferrer"
-                                        className="bg-gray-800 hover:bg-gray-700 text-[9px] font-bold text-gray-300 py-2 px-3 rounded text-center border border-white/10"
-                                    >
-                                        📂 VER ARQUIVO JSON
+                                        👁️ STATUS DO ROBÔ
                                     </a>
                                 </div>
                             </div>
