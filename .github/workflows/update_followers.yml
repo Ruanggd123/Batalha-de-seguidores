@@ -60,9 +60,9 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add public/followers.json
-          git commit -m "🤖 Atualização automática de seguidores: @${{ github.event.inputs.username || 'ruanggd123' }}" || echo "Nenhuma mudança para commitar"
-          # Não fazemos push aqui para evitar loops, o build vai usar o arquivo local gerado
+          git add public/followers.json public/followers_info.json
+          git pull --rebase origin main
+          git commit -m "🤖 Atualização automática: @${{ github.event.inputs.username || 'ruanggd123' }}" || echo "Nenhuma mudança para commitar"
           
       # --- AGORA FAZ O BUILD E DEPLOY DO SITE ATUALIZADO ---
       
@@ -90,8 +90,6 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v4
         
-      # Opcional: Push do json atualizado para o histórico do repo
-      - name: Push followers.json
-        run: |
-          git pull --rebase origin main
-          git push origin main
+      # Envia as alterações do JSON de volta para o repo
+      - name: Push followers files
+        run: git push origin main
