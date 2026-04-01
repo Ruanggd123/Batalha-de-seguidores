@@ -281,20 +281,27 @@ const SetupView: React.FC<SetupViewProps> = (props) => {
                                 </button>
 
                                 <div className="grid grid-cols-2 gap-2 mt-2">
-                                    <a 
-                                        href="./followers.json" 
-                                        download="followers.json"
-                                        className="bg-green-600 hover:bg-green-500 text-[11px] font-black text-white py-3 px-3 rounded-xl text-center border-b-4 border-green-800 active:border-b-0 active:translate-y-1 transition-all flex items-center justify-center gap-1"
-                                    >
-                                        💾 BAIXAR LISTA (JSON)
-                                    </a>
+                                    {botStatus === 'running' ? (
+                                        <div className="bg-gray-800/50 text-[10px] font-bold text-yellow-500 py-3 px-3 rounded-xl text-center border border-yellow-500/20 flex flex-col items-center justify-center animate-pulse">
+                                            <span>⏳ AGUARDE...</span>
+                                            <span className="text-[7px] uppercase opacity-60">Novo arquivo será gerado</span>
+                                        </div>
+                                    ) : (
+                                        <a 
+                                            href={`./followers.json?t=${Date.now()}`} 
+                                            download="followers.json"
+                                            className="bg-green-600 hover:bg-green-500 text-[11px] font-black text-white py-3 px-3 rounded-xl text-center border-b-4 border-green-800 active:border-b-0 active:translate-y-1 transition-all flex items-center justify-center gap-1"
+                                        >
+                                            💾 BAIXAR LISTA (JSON)
+                                        </a>
+                                    )}
                                     <a 
                                         href="https://github.com/Ruanggd123/Batalha-de-seguidores/actions" 
                                         target="_blank" 
                                         rel="noreferrer"
                                         className="bg-gray-800 hover:bg-gray-700 text-[11px] font-bold text-gray-300 py-3 px-3 rounded-xl text-center border border-white/10 flex items-center justify-center gap-1"
                                     >
-                                        👁️ STATUS DO ROBÔ
+                                        👁️ STATUS DO ROBô
                                     </a>
                                 </div>
                             </div>

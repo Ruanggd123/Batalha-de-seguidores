@@ -74,8 +74,11 @@ export const usePlayerManager = (addLogEvent: (text: string, type: BattleEvent['
                 if (burned) {
                     addLogEvent('Chave de licença utilizada com sucesso.', 'info');
                     setBotLogs(prev => [...prev, '🎫 LICENÇA CONSUMIDA: Esta chave não poderá ser usada novamente.']);
-                    // Opcional: Desautorizar após o uso para forçar nova chave no próximo uso
-                    // setIsAuthorized(false); 
+                    
+                    // Trava de segurança: Desautorizar imediatamente após o uso
+                    setIsAuthorized(false);
+                    setLicenseKey('');
+                    localStorage.removeItem('battleRoyale_licenseKey');
                 }
             }
         } else {
@@ -356,6 +359,9 @@ export const usePlayerManager = (addLogEvent: (text: string, type: BattleEvent['
                             // Queimar a licença se não for admin (Modo Local)
                             if (!isAdmin) {
                                 await burnLicense(licenseKey);
+                                setIsAuthorized(false);
+                                setLicenseKey('');
+                                localStorage.removeItem('battleRoyale_licenseKey');
                             }
 
                             // Auto-download logic
