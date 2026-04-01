@@ -287,6 +287,15 @@ def save_json_minimalista(username: str, followers_dict: Dict) -> str:
     with open(filename, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
     
+    # ⭐ METADADOS: Salva informações extras da extração
+    info = {
+        "lastUpdate": datetime.now().isoformat(),
+        "username": username,
+        "count": len(followers_dict)
+    }
+    with open("public/followers_info.json", "w", encoding="utf-8") as f:
+        json.dump(info, f, ensure_ascii=False, indent=2)
+    
     return filename
 
 def extract_all_followers(username: str, cookies: List[Dict], max_followers: int = 100000) -> List[Dict]:

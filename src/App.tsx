@@ -302,6 +302,7 @@ const App: React.FC = () => {
           triggerGithubAction={playerManager.triggerGithubAction}
           isReelMode={engine.isReelMode}
           setIsReelMode={engine.setIsReelMode}
+          listMetadata={playerManager.listMetadata}
         />
       )}
       

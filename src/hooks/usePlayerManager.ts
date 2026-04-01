@@ -23,6 +23,7 @@ export const usePlayerManager = (addLogEvent: (text: string, type: BattleEvent['
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isValidatingKey, setIsValidatingKey] = useState(false);
+  const [listMetadata, setListMetadata] = useState<{ lastUpdate: string; username: string; count: number } | null>(null);
 
   // Persistence for Github Token
   useEffect(() => {
@@ -278,7 +279,15 @@ export const usePlayerManager = (addLogEvent: (text: string, type: BattleEvent['
   const loadInstagramData = useCallback(async (isSilent = false) => {
     if (!isSilent) setIsAutoLoading(true);
     try {
-      // Use better URL path (relative to root)
+      // 1. Fetch metadata first
+      const infoUrl = `followers_info.json?t=${Date.now()}`;
+      const infoRes = await fetch(infoUrl);
+      if (infoRes.ok) {
+        const info = await infoRes.json();
+        setListMetadata(info);
+      }
+
+      // 2. Fetch followers list
       const url = `followers.json?t=${Date.now()}`;
       const response = await fetch(url);
       
@@ -387,6 +396,11 @@ export const usePlayerManager = (addLogEvent: (text: string, type: BattleEvent['
     }
   }, [addLogEvent, licenseKey]);
 
+  // Load followers metadata on mount
+  useEffect(() => {
+    loadInstagramData(true);
+  }, [loadInstagramData]);
+
   return {
     players, setPlayers,
     playersRef,
@@ -412,6 +426,7 @@ export const usePlayerManager = (addLogEvent: (text: string, type: BattleEvent['
     isAuthorized,
     isAdmin,
     isValidatingKey,
-    checkLicense
+    checkLicense,
+    listMetadata
   };
 };

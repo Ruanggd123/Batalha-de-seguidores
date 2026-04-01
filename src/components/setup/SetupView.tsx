@@ -54,6 +54,7 @@ interface SetupViewProps {
   githubToken: string;
   isReelMode: boolean;
   setIsReelMode: (val: boolean) => void;
+  listMetadata: { lastUpdate: string; username: string; count: number } | null;
 }
 
 const SetupView: React.FC<SetupViewProps> = (props) => {
@@ -69,7 +70,7 @@ const SetupView: React.FC<SetupViewProps> = (props) => {
     targetDuration, setTargetDuration, loadInstagramData, isAutoLoading,
     scrapeFromBot, botStatus, botError, botLogs,
     licenseKey, setLicenseKey, isAuthorized, isAdmin, isValidatingKey,
-    isDraggingOver, triggerGithubAction, githubToken
+    isDraggingOver, triggerGithubAction, githubToken, listMetadata
   } = props;
 
   const [instagramSearch, setInstagramSearch] = React.useState('');
@@ -266,6 +267,26 @@ const SetupView: React.FC<SetupViewProps> = (props) => {
                         
                         if (!isLocal) return (
                             <div className="w-full space-y-4">
+                                {listMetadata && (
+                                    <div className="bg-blue-500/10 border border-blue-500/20 p-3 rounded-xl text-[10px] text-blue-300 flex justify-between items-center animate-fade-in shadow-inner">
+                                        <div className="flex flex-col gap-0.5">
+                                            <span className="font-black text-blue-400 uppercase tracking-wider">📊 ÚLTIMA LISTA: @{listMetadata.username}</span>
+                                            <span className="opacity-70 font-mono italic">{new Date(listMetadata.lastUpdate).toLocaleString('pt-BR')}</span>
+                                        </div>
+                                        <div className="text-right">
+                                            <span className="text-xl font-black text-white">{listMetadata.count}</span>
+                                            <span className="block text-[7px] font-bold opacity-60 uppercase tracking-tighter">Seguidores</span>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {botStatus === 'running' && (
+                                    <div className="flex items-center gap-2 px-4 py-2.5 bg-yellow-500/15 border border-yellow-500/30 rounded-xl animate-pulse shadow-[0_0_15px_rgba(234,179,8,0.1)]">
+                                        <div className="w-2.5 h-2.5 bg-yellow-500 rounded-full shadow-[0_0_8px_rgba(234,179,8,1)]"></div>
+                                        <span className="text-[10px] font-black text-yellow-500 uppercase tracking-tighter">Robô em Processamento no GitHub Actions...</span>
+                                    </div>
+                                )}
+
                                 <div className="text-center space-y-1">
                                     <p className="text-[10px] text-yellow-500 font-bold uppercase tracking-widest px-2 py-1 bg-yellow-500/10 rounded border border-yellow-500/20">🚀 O robô agora é 100% automático via GitHub API</p>
                                 </div>

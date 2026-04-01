@@ -92,4 +92,6 @@ jobs:
         
       # Opcional: Push do json atualizado para o histórico do repo
       - name: Push followers.json
-        run: git push
+        run: |
+          git pull --rebase origin main
+          git push origin main
