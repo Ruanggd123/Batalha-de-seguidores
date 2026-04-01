@@ -15,6 +15,10 @@ export interface Player {
   y: number;
   vx: number;
   vy: number;
+  angle?: number; // Current movement angle for natural steering
+  targetSpeed?: number; // Desired speed for smoother acceleration
+  lastCollisionTime?: number;
+  isCharged?: boolean; // For DVD mode: true if the player hit a wall
 }
 
 export interface BattleEvent {
@@ -40,6 +44,7 @@ export enum GameMode {
   Classic = 'Classic',
   GravityAbyss = 'GravityAbyss',
   Vortex = 'Vortex',
+  ElasticClash = 'ElasticClash',
 }
 
 export interface FloatingText {

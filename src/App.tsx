@@ -187,9 +187,8 @@ const App: React.FC = () => {
   useEffect(() => {
     if (playerManager.totalPlayersRef.current === 0) return;
     
-    // Only preload the first 100 players to give a smooth start
-    // The rest will be loaded on-demand by the battle engine with throttling
-    const playersToPreload = playerManager.allPlayersRef.current.slice(0, 100);
+    // Preload the first 5000 players to ensure images appear immediately for even massive matches
+    const playersToPreload = playerManager.allPlayersRef.current.slice(0, 5000);
     
     playersToPreload.forEach(player => {
         const safeUrl = getSafeImageUrl(player.imageUrl);
@@ -216,10 +215,38 @@ const App: React.FC = () => {
       <DynamicBackground />
       <audio 
         ref={audio.audioRef} 
-        src={BGM_PLAYLIST[audio.currentTrackIndex]} 
-        onEnded={() => audio.setCurrentTrackIndex(prev => (prev + 1) % BGM_PLAYLIST.length)}
+        onEnded={audio.nextTrack}
       />
       
+      {/* Music Controls Panel (Compact) - Only visible when settings are open */}
+      {isAudioSettingsOpen && (
+        <div className="absolute top-4 right-16 z-50 flex items-center gap-1.5 bg-black/40 backdrop-blur-md border border-white/10 rounded-full px-2 py-1.5 hover:bg-black/60 transition-all animate-in fade-in slide-in-from-right-4 duration-300 shadow-2xl">
+          <button 
+            onClick={audio.prevTrack} 
+            className="text-white hover:text-cyan-400 p-0.5 transition-colors hover:scale-110 active:scale-95"
+            title="Anterior"
+          >
+            <span className="text-[10px]">⏮️</span>
+          </button>
+          <div className="flex flex-col items-center min-w-[80px] max-w-[140px] px-1">
+            <div className="flex items-center gap-1">
+              <div className="w-1 h-1 bg-cyan-400 rounded-full animate-pulse" />
+              <span className="text-[8px] text-cyan-400 uppercase tracking-tighter font-black opacity-80">Radio</span>
+            </div>
+            <span className="text-[10px] text-white truncate w-full text-center font-bold">
+              {audio.currentTrackTitle}
+            </span>
+          </div>
+          <button 
+            onClick={audio.nextTrack} 
+            className="text-white hover:text-cyan-400 p-0.5 transition-colors hover:scale-110 active:scale-95"
+            title="Próxima"
+          >
+            <span className="text-[10px]">⏭️</span>
+          </button>
+        </div>
+      )}
+
       <button 
         onClick={() => setIsAudioSettingsOpen(!isAudioSettingsOpen)}
         className={`absolute top-4 right-4 z-50 hover:bg-black/70 p-2.5 rounded-full backdrop-blur-md border transition-all shadow-xl group ${
@@ -273,20 +300,31 @@ const App: React.FC = () => {
           isAdmin={playerManager.isAdmin}
           isValidatingKey={playerManager.isValidatingKey}
           triggerGithubAction={playerManager.triggerGithubAction}
+          isReelMode={engine.isReelMode}
+          setIsReelMode={engine.setIsReelMode}
         />
       )}
       
       {(engine.gameState !== GameState.AwaitingPlayers || playerManager.totalPlayersRef.current > 0) && (
-        <div className={`w-full h-full relative transition-opacity duration-500`}>
+        <div className={`w-full h-full relative transition-opacity duration-500 ${engine.gameMode === 'ELASTIC_CLASH' && engine.gameState === 'RUNNING' ? 'bg-[#3b0d5c]' : ''}`}>
+          {/* Instagram Handle Overlay for Elastic Clash */}
+          {engine.gameMode === 'ELASTIC_CLASH' && engine.gameState === 'RUNNING' && (
+              <div className="absolute top-6 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center pointer-events-none animate-fade-in">
+                  <span className="text-white/80 font-bold text-lg sm:text-2xl font-orbitron drop-shadow-lg tracking-widest">@batalha_seguidores</span>
+                  <div className="flex items-center gap-2 mt-1 opacity-90">
+                      <svg className="w-5 h-5 sm:w-8 sm:h-8 fill-white shadow-lg" viewBox="0 0 24 24">
+                          <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4s1.791-4 4-4 4 1.791 4 4-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                      </svg>
+                      <span className="text-white font-black text-xs sm:text-sm tracking-tighter uppercase drop-shadow-md">@BATALHA_SEGUIDORES</span>
+                  </div>
+              </div>
+          )}
           <div className="w-full h-full lg:pr-[320px] xl:pr-[400px] relative overflow-hidden">
             {engine.gameState === GameState.Running && playerManager.totalPlayersRef.current > 0 && (
-                 <div className="absolute top-6 left-1/2 -translate-x-1/2 z-20 w-[90%] sm:w-1/2 max-w-md">
-                    <div className="text-center mb-2 text-sm sm:text-base font-black font-orbitron text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] tracking-wider">
-                        VIVOS: <span className="text-green-400 text-lg sm:text-2xl">{totalAliveCount}</span> <span className="text-gray-400 text-xs sm:text-sm">/ {playerManager.totalPlayersRef.current}</span>
-                    </div>
-                    <div className="w-full bg-black/60 backdrop-blur-md rounded-full h-3 border border-white/20 shadow-[0_0_15px_rgba(0,0,0,0.5)]">
-                        <div className="bg-gradient-to-r from-green-500 via-emerald-400 to-cyan-500 h-full rounded-full transition-all duration-500 shadow-[0_0_10px_rgba(52,211,153,0.5)]" 
-                             style={{ width: `${(totalAliveCount / playerManager.totalPlayersRef.current) * 100}%` }}></div>
+                 <div className={`absolute top-6 left-6 z-30 transition-all duration-300 ${engine.gameMode === 'ELASTIC_CLASH' ? 'scale-110' : ''}`}>
+                    <div className="font-black font-orbitron text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] tracking-wider flex items-baseline gap-2">
+                        <span className="text-xs sm:text-sm text-gray-300 opacity-80">Vivos:</span> 
+                        <span className="text-white text-2xl sm:text-4xl">{totalAliveCount}</span>
                     </div>
                 </div>
             )}

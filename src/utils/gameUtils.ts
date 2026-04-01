@@ -59,8 +59,8 @@ export const getPlayerSize = (count: number, arenaWidth: number = 1920): number 
 
     const progress = Math.min(1, Math.max(0, (MAX_PLAYERS_FOR_MIN_SIZE - count) / playerCountRange));
     
-    // Use an ease-in-quad curve for smoother growth (stays small longer)
-    const curveProgress = progress * progress; 
+    // Use an aggressive power curve to keep players small for a long time
+    const curveProgress = progress ** 8; 
     return Math.round(MIN_PLAYER_SIZE + curveProgress * sizeRange);
 };
 

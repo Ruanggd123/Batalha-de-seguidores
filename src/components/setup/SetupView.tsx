@@ -52,6 +52,8 @@ interface SetupViewProps {
   isDraggingOver?: boolean;
   triggerGithubAction: (username: string) => void;
   githubToken: string;
+  isReelMode: boolean;
+  setIsReelMode: (val: boolean) => void;
 }
 
 const SetupView: React.FC<SetupViewProps> = (props) => {
@@ -59,6 +61,7 @@ const SetupView: React.FC<SetupViewProps> = (props) => {
     gameMode, setGameMode, playerSizeMultiplier, setPlayerSizeMultiplier,
     isNarrationEnabled, setIsNarrationEnabled, bgmVolume, setBgmVolume,
     sfxVolume, setSfxVolume, narrationVolume, setNarrationVolume,
+    isReelMode, setIsReelMode,
     profileName, setProfileName, platform, setPlatform, jsonInput, setJsonInput,
     isSpectatorMode, startSpectatorMode, processData, handleFileUpload,
     handleChooseFileClick, handleDragOver, handleDragLeave, handleDrop,
@@ -113,7 +116,7 @@ const SetupView: React.FC<SetupViewProps> = (props) => {
             <div className="relative z-10">
                 <h2 className={`text-2xl font-bold font-orbitron mb-4 border-b border-white/10 pb-3 ${activeTheme.text}`} style={{textShadow: `0 0 8px ${activeTheme.neonColor}60`}}>1. Customize a Arena</h2>
                 <div className="flex flex-col sm:flex-row gap-4">
-                    {(Object.values(GameMode) as GameMode[]).filter(mode => mode === GameMode.Classic).map(mode => {
+                    {(Object.values(GameMode) as GameMode[]).filter(mode => mode !== GameMode.GravityAbyss && mode !== GameMode.Vortex).map(mode => {
                         const isSelected = gameMode === mode;
                         const currentTheme = themes[mode].classes;
                         return (
@@ -150,14 +153,25 @@ const SetupView: React.FC<SetupViewProps> = (props) => {
                                 ))}
                             </div>
                         </div>
-                        <div>
-                            <label className="block text-base font-orbitron mb-2 text-gray-300">Narração da Batalha</label>
-                            <button 
-                                onClick={() => setIsNarrationEnabled(!isNarrationEnabled)}
-                                className={`w-full py-3 rounded-xl border-2 font-bold font-orbitron transition-all ${isNarrationEnabled ? 'bg-cyan-500/20 border-cyan-500 text-cyan-300' : 'bg-gray-800/80 border-gray-600 text-gray-500 grayscale'}`}
-                            >
-                                {isNarrationEnabled ? '🎙️ ATIVADA' : '🔇 DESATIVADA'}
-                            </button>
+                        <div className="grid grid-cols-2 gap-3">
+                            <div className="w-full">
+                                <label className="block text-base font-orbitron mb-2 text-gray-300">Narração</label>
+                                <button 
+                                    onClick={() => setIsNarrationEnabled(!isNarrationEnabled)}
+                                    className={`w-full py-3 rounded-xl border-2 font-bold font-orbitron transition-all ${isNarrationEnabled ? 'bg-cyan-500/20 border-cyan-500 text-cyan-300' : 'bg-gray-800/80 border-gray-600 text-gray-500 grayscale'}`}
+                                >
+                                    {isNarrationEnabled ? '🎙️ SIM' : '🔇 NÃO'}
+                                </button>
+                            </div>
+                            <div className="w-full">
+                                <label className="block text-base font-orbitron mb-2 text-gray-300">Tela</label>
+                                <button 
+                                    onClick={() => setIsReelMode(!isReelMode)}
+                                    className={`w-full py-3 rounded-xl border-2 font-bold font-orbitron transition-all ${isReelMode ? 'bg-purple-500/20 border-purple-500 text-purple-300' : 'bg-indigo-500/20 border-indigo-500 text-indigo-300'}`}
+                                >
+                                    {isReelMode ? '📱 VERTICAL' : '📺 DEITADO'}
+                                </button>
+                            </div>
                         </div>
                     </div>
                     <div className="space-y-3">

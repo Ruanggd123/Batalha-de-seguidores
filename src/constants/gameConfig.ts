@@ -25,13 +25,13 @@ export const SPHERE_GRAVITY = 0.15;
 export const GRAVITY_ABYSS_RADIUS_FACTOR = 0.45;
 export const GRAVITY_ABYSS_HOLE_SIZE_DEGREES = 60;
 
-export const MIN_PLAYER_SIZE = 3;
-export const MAX_PLAYER_SIZE = 150; 
+export const MIN_PLAYER_SIZE = 8;
+export const MAX_PLAYER_SIZE = 100; 
 export const MIN_PLAYERS_FOR_MAX_SIZE = 10;
-export const MAX_PLAYERS_FOR_MIN_SIZE = 2500; // Curve starts rising here
-export const PIXEL_MODE_THRESHOLD = 1000; // Use dots above 1000
+export const MAX_PLAYERS_FOR_MIN_SIZE = 10000; // Curve starts rising here
+export const PIXEL_MODE_THRESHOLD = 3000; // Use dots above 3000
 
-export const ATTACK_TRACER_THRESHOLD = 150;
+export const ATTACK_TRACER_THRESHOLD = 200; // Reset to a clearer limit
 export const ATTACK_TRACER_LIFESPAN = 20;
 export const METEOR_SHOWER_THRESHOLD = 1000;
 export const METEOR_SPAWN_INTERVAL = 500;
@@ -47,16 +47,20 @@ export const SPAWN_ACCELERATION = 1.1; // 10% increase per batch
 export const SPAWN_INTERVAL_MS = 16; // 60fps-ish
 
 export const BGM_PLAYLIST = [
-  "https://cdn.pixabay.com/audio/2022/03/10/audio_c8c8a7305d.mp3", // Epic Battle Theme
-  "https://cdn.pixabay.com/audio/2022/01/18/audio_8233f2187b.mp3", // Cinematic Action
-  "https://cdn.pixabay.com/audio/2024/02/07/audio_f58f44d5d3.mp3", // Electronic Metal
-  "https://cdn.pixabay.com/audio/2023/10/24/audio_3d1e18d6e3.mp3"  // Fast Pace Action
+  { url: '/audio/battle-bgm.mp3', title: 'Epic Battle (Local)' },
+  { url: 'https://upload.wikimedia.org/wikipedia/commons/e/ec/Wagner_-_Ride_of_the_Valkyries.mp3', title: 'Wagner - Valkyries' },
+  { url: 'https://upload.wikimedia.org/wikipedia/commons/1/15/In_the_Hall_of_the_Mountain_King_-_Edvard_Grieg_-_The_Helsinki_Philharmonic_Orchestra.mp3', title: 'Grieg - Mountain King' },
+  { url: 'https://upload.wikimedia.org/wikipedia/commons/0/09/Mars_the_Bringer_of_War_-_Holst.mp3', title: 'Holst - Mars' },
+  { url: 'https://upload.wikimedia.org/wikipedia/commons/b/b3/Dvorak_-_Symphony_No._9_%22From_the_New_World%22_-_IV._Allegro_con_fuoco.mp3', title: 'Dvořák - New World' },
+  { url: 'https://upload.wikimedia.org/wikipedia/commons/a/af/Verdi_-_Dies_Irae.mp3', title: 'Verdi - Dies Irae' },
+  { url: 'https://upload.wikimedia.org/wikipedia/commons/6/6d/Beethoven_Symphony_No_5_Movement_1.mp3', title: 'Beethoven - 5th Sym' }
 ];
 
 export const gameModeDetails = {
   [GameMode.Classic]: { title: 'Batalha Clássica', description: 'Uma arena aberta onde apenas o mais forte sobrevive. Empurre e ataque!', icon: '⚔️' },
   [GameMode.GravityAbyss]: { title: 'Abismo Gravitacional', description: 'Uma esfera gigante gira sem parar. A gravidade o puxa para o fundo - escale as paredes para não ser engolido pelo abismo em movimento!', icon: '🌐' },
   [GameMode.Vortex]: { title: 'Vórtice Aniquilador', description: 'Um vórtice mortal no centro se expande. Fuja para as bordas para sobreviver!', icon: '🌀' },
+  [GameMode.ElasticClash]: { title: 'Choque Elástico', description: 'O clássico DVD! Jogadores quicam nas bordas e se batem causando dano real. Seja o último sobrevivente!', icon: '🎾' },
 };
 
 export const themes = {
@@ -118,6 +122,26 @@ export const themes = {
       dotColor: 'rgba(239, 68, 68, 0.1)',
       neonColor: 'rgb(251, 146, 60)',
       radioSelected: 'bg-red-600 border-orange-300',
+    }
+  },
+  [GameMode.ElasticClash]: {
+    classes: {
+      border: 'border-purple-400/20',
+      borderSelected: 'border-fuchsia-500',
+      ringSelected: 'ring-fuchsia-500/70',
+      bgSelected: 'bg-indigo-900/40',
+      shadowSelected: 'shadow-[0_0_25px_rgba(217,70,239,0.5)]',
+      text: 'text-fuchsia-400',
+      textGlow: '0 0 12px rgba(217, 70, 239, 0.7)',
+      bg: 'bg-fuchsia-600',
+      hoverBg: 'hover:bg-fuchsia-700',
+      radioBg: 'bg-fuchsia-600 border-purple-300',
+      radioShadow: 'shadow-[0_0_20px_rgba(217,70,239,0.6)]',
+      titleGradientFrom: 'from-fuchsia-500',
+      titleGradientTo: 'to-purple-600',
+      dotColor: 'rgba(217, 70, 239, 0.1)',
+      neonColor: 'rgb(217, 70, 239)',
+      radioSelected: 'bg-fuchsia-600 border-purple-300',
     }
   },
 } as const;

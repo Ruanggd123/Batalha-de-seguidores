@@ -10,6 +10,7 @@ export const useBattleAudio = () => {
   const [narrationVolume, setNarrationVolume] = useState(1.0);
   const [isNarrationEnabled, setIsNarrationEnabled] = useState(true);
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
+  const [isPreloaded, setIsPreloaded] = useState(false);
   
   const [currentNarration, setCurrentNarration] = useState<string>("");
   const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
@@ -18,7 +19,24 @@ export const useBattleAudio = () => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const isNarratingRef = useRef<boolean>(false);
   const lastNarrationTimeRef = useRef<number>(0);
-  
+
+  // PRELOAD ALL TRACKS
+  useEffect(() => {
+    const preload = () => {
+        BGM_PLAYLIST.forEach((track) => {
+            const tempAudio = new Audio();
+            tempAudio.src = track.url;
+            tempAudio.preload = "auto";
+        });
+        setIsPreloaded(true);
+    };
+    
+    if (typeof window !== 'undefined') {
+        const timer = setTimeout(preload, 1000);
+        return () => clearTimeout(timer);
+    }
+  }, []);
+
   // Refs to ensure the speech engine always has the latest values without needing dependency array restarts
   const volumeRef = useRef(narrationVolume);
   const enabledRef = useRef(isNarrationEnabled);
@@ -29,18 +47,15 @@ export const useBattleAudio = () => {
   useEffect(() => {
     const loadVoices = () => {
       const allVoices = window.speechSynthesis.getVoices();
-      // Sort: pt-BR > other pt > everything else
       const sortedVoices = [...allVoices].sort((a, b) => {
         const aPtBR = a.lang.includes('pt-BR') || a.lang.includes('pt_BR');
         const bPtBR = b.lang.includes('pt-BR') || b.lang.includes('pt_BR');
         if (aPtBR && !bPtBR) return -1;
         if (!aPtBR && bPtBR) return 1;
-        
         const aPt = a.lang.startsWith('pt');
         const bPt = b.lang.startsWith('pt');
         if (aPt && !bPt) return -1;
         if (!aPt && bPt) return 1;
-        
         return a.name.localeCompare(b.name);
       });
 
@@ -62,8 +77,7 @@ export const useBattleAudio = () => {
   }, [isMuted]);
 
   useEffect(() => {
-    // Stop any ongoing narration if the game ends or resets
-    if (gameState === (GameState.Finished as any) || gameState === (GameState.AwaitingPlayers as any)) {
+    if (gameState === GameState.Finished || gameState === GameState.AwaitingPlayers) {
       window.speechSynthesis.cancel();
       isNarratingRef.current = false;
       setCurrentNarration("");
@@ -74,16 +88,30 @@ export const useBattleAudio = () => {
     const bgm = audioRef.current;
     if (!bgm) return;
     
-    // Unity BGM logic across all states
-    if (gameState === (GameState.Running as any) || gameState === (GameState.Countdown as any)) {
+    const isPlayingMode = gameState === GameState.Running || gameState === GameState.Countdown;
+    
+    if (isPlayingMode) {
+        const track = BGM_PLAYLIST[currentTrackIndex];
+        // Robust URL check (handles both full URLs and relative paths)
+        const normalize = (url: string) => {
+            if (url.startsWith('http')) return url;
+            return window.location.origin + (url.startsWith('/') ? '' : '/') + url;
+        };
+        
+        const targetSrc = normalize(track.url);
+        if (bgm.src !== targetSrc && !bgm.src.endsWith(track.url)) {
+            bgm.pause();
+            bgm.src = track.url;
+            bgm.load(); 
+        }
         bgm.volume = bgmVolume;
+
         bgm.play().catch(e => {
-            if (e.name !== 'AbortError') {
-                console.error("BGM Playback error:", e);
-                // Attempt to skip if source is invalid
-                if (e.name === 'NotSupportedError') {
-                    console.warn("Retrying next track due to unsupported source...");
-                    setCurrentTrackIndex(prev => (prev + 1) % BGM_PLAYLIST.length);
+            if (e.name !== 'AbortError' && e.name !== 'NotAllowedError') {
+                console.warn("BGM Playback (retrying...):", e.name);
+                // If it fails to load, try NEXT track after a delay
+                if (e.name === 'NotSupportedError' || e.name === 'NetworkError') {
+                   setTimeout(() => setCurrentTrackIndex(prev => (prev + 1) % BGM_PLAYLIST.length), 2000);
                 }
             }
         });
@@ -95,6 +123,14 @@ export const useBattleAudio = () => {
     }
   }, [gameState, currentTrackIndex, bgmVolume]);
 
+  const nextTrack = useCallback(() => {
+    setCurrentTrackIndex(prev => (prev + 1) % BGM_PLAYLIST.length);
+  }, []);
+
+  const prevTrack = useCallback(() => {
+    setCurrentTrackIndex(prev => (prev - 1 + BGM_PLAYLIST.length) % BGM_PLAYLIST.length);
+  }, []);
+
   const phraseHistoryRef = useRef<string[]>([]);
   const MAX_HISTORY = 5;
 
@@ -104,16 +140,12 @@ export const useBattleAudio = () => {
       const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
       const oscillator = audioCtx.createOscillator();
       const gainNode = audioCtx.createGain();
-
       oscillator.type = type;
       oscillator.frequency.setValueAtTime(frequency, audioCtx.currentTime);
-      
       gainNode.gain.setValueAtTime(0.1 * sfxVolume, audioCtx.currentTime);
       gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
-
       oscillator.connect(gainNode);
       gainNode.connect(audioCtx.destination);
-
       oscillator.start();
       oscillator.stop(audioCtx.currentTime + duration);
     } catch (e) {
@@ -126,19 +158,14 @@ export const useBattleAudio = () => {
       window.speechSynthesis.cancel();
       return;
     }
-    
     window.speechSynthesis.cancel();
     setCurrentNarration(text);
-    
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.volume = volumeRef.current;
     utterance.rate = 1.05;
     utterance.pitch = 1.0;
-    
-    // Memory logic to prevent repetition
     phraseHistoryRef.current.push(text);
     if (phraseHistoryRef.current.length > MAX_HISTORY) phraseHistoryRef.current.shift();
-
     const voice = availableVoices.find(v => v.voiceURI === selectedVoiceURI);
     if (voice) {
         utterance.voice = voice;
@@ -146,13 +173,11 @@ export const useBattleAudio = () => {
     } else {
         utterance.lang = 'pt-BR';
     }
-    
     utterance.onstart = () => { isNarratingRef.current = true; };
     utterance.onend = () => {
       isNarratingRef.current = false;
       setTimeout(() => setCurrentNarration(prev => prev === text ? "" : prev), 2000);
     };
-    
     window.speechSynthesis.speak(utterance);
   }, [availableVoices, selectedVoiceURI]);
 
@@ -193,6 +218,8 @@ export const useBattleAudio = () => {
     narrationVolume, setNarrationVolume,
     isNarrationEnabled, setIsNarrationEnabled,
     currentTrackIndex, setCurrentTrackIndex,
+    nextTrack, prevTrack,
+    currentTrackTitle: BGM_PLAYLIST[currentTrackIndex]?.title || 'Unknown',
     audioRef,
     isNarratingRef,
     lastNarrationTimeRef,
@@ -205,6 +232,6 @@ export const useBattleAudio = () => {
     availableVoices,
     selectedVoiceURI,
     setSelectedVoiceURI,
-    setGameState // Export the setter so App can update it
+    setGameState 
   };
 };

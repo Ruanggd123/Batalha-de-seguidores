@@ -71,7 +71,13 @@ const ControlPanel: React.FC<ControlPanelProps> = (props) => {
         {followedPlayer && (
           <div className="flex-shrink-0 bg-white/5 backdrop-blur-sm p-3 rounded-xl border border-yellow-400/30 shadow-lg animate-fade-in">
             <div className="flex items-center gap-3">
-              <img src={followedPlayer.imageUrl} alt={followedPlayer.name} className="w-10 h-10 lg:w-12 lg:h-12 rounded-full border-2 border-yellow-400 shadow-inner" />
+              {followedPlayer.instagramUrl ? (
+                <a href={followedPlayer.instagramUrl} target="_blank" rel="noopener noreferrer" className="block hover:scale-110 transition-transform flex-shrink-0">
+                  <img src={followedPlayer.imageUrl} alt={followedPlayer.name} className="w-10 h-10 lg:w-12 lg:h-12 rounded-full border-2 border-yellow-400 shadow-inner object-cover" />
+                </a>
+              ) : (
+                <img src={followedPlayer.imageUrl} alt={followedPlayer.name} className="w-10 h-10 lg:w-12 lg:h-12 rounded-full border-2 border-yellow-400 shadow-inner object-cover" />
+              )}
               <div className="flex-grow min-w-0">
                 {followedPlayer.instagramUrl ? (
                   <a href={followedPlayer.instagramUrl} target="_blank" rel="noopener noreferrer" className="font-bold text-yellow-300 truncate hover:text-yellow-100 hover:underline transition-all flex items-center gap-1">

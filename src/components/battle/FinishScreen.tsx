@@ -28,7 +28,13 @@ const FinishScreen: React.FC<FinishScreenProps> = ({
                 {top3[1] && (
                   <>
                     <div className="relative">
-                      <img src={top3[1].imageUrl} alt={top3[1].name} className="w-14 h-14 sm:w-20 sm:h-20 rounded-full border-4 border-gray-300 shadow-lg object-cover bg-gray-900" />
+                      {top3[1].instagramUrl ? (
+                        <a href={top3[1].instagramUrl} target="_blank" rel="noopener noreferrer" className="block hover:scale-105 transition-transform">
+                          <img src={top3[1].imageUrl} alt={top3[1].name} className="w-14 h-14 sm:w-20 sm:h-20 rounded-full border-4 border-gray-300 shadow-lg object-cover bg-gray-900" />
+                        </a>
+                      ) : (
+                        <img src={top3[1].imageUrl} alt={top3[1].name} className="w-14 h-14 sm:w-20 sm:h-20 rounded-full border-4 border-gray-300 shadow-lg object-cover bg-gray-900" />
+                      )}
                       <div className="absolute -bottom-2 -right-2 bg-gray-300 text-gray-800 font-bold rounded-full w-6 h-6 sm:w-8 sm:h-8 flex items-center justify-center border-2 border-gray-900 shadow-md text-xs sm:text-base">
                         🥈
                       </div>
@@ -52,7 +58,13 @@ const FinishScreen: React.FC<FinishScreenProps> = ({
                 {top3[0] && (
                   <>
                     <div className="relative mb-2">
-                      <img src={top3[0].imageUrl} alt={top3[0].name} className="w-20 h-20 sm:w-28 sm:h-28 rounded-full border-4 border-yellow-400 shadow-[0_0_20px_rgba(250,204,21,0.6)] object-cover bg-gray-900" />
+                      {top3[0].instagramUrl ? (
+                        <a href={top3[0].instagramUrl} target="_blank" rel="noopener noreferrer" className="block hover:scale-105 transition-transform">
+                          <img src={top3[0].imageUrl} alt={top3[0].name} className="w-20 h-20 sm:w-28 sm:h-28 rounded-full border-4 border-yellow-400 shadow-[0_0_20px_rgba(250,204,21,0.6)] object-cover bg-gray-900" />
+                        </a>
+                      ) : (
+                        <img src={top3[0].imageUrl} alt={top3[0].name} className="w-20 h-20 sm:w-28 sm:h-28 rounded-full border-4 border-yellow-400 shadow-[0_0_20px_rgba(250,204,21,0.6)] object-cover bg-gray-900" />
+                      )}
                       <div className="absolute -bottom-3 -right-3 bg-yellow-400 text-yellow-900 font-bold rounded-full w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center border-2 border-yellow-900 shadow-lg text-sm sm:text-xl">
                         🥇
                       </div>
@@ -76,7 +88,13 @@ const FinishScreen: React.FC<FinishScreenProps> = ({
                 {top3[2] && (
                   <>
                     <div className="relative">
-                      <img src={top3[2].imageUrl} alt={top3[2].name} className="w-12 h-12 sm:w-16 sm:h-16 rounded-full border-4 border-amber-700 shadow-lg object-cover bg-gray-900" />
+                      {top3[2].instagramUrl ? (
+                        <a href={top3[2].instagramUrl} target="_blank" rel="noopener noreferrer" className="block hover:scale-105 transition-transform">
+                          <img src={top3[2].imageUrl} alt={top3[2].name} className="w-12 h-12 sm:w-16 sm:h-16 rounded-full border-4 border-amber-700 shadow-lg object-cover bg-gray-900" />
+                        </a>
+                      ) : (
+                        <img src={top3[2].imageUrl} alt={top3[2].name} className="w-12 h-12 sm:w-16 sm:h-16 rounded-full border-4 border-amber-700 shadow-lg object-cover bg-gray-900" />
+                      )}
                       <div className="absolute -bottom-2 -right-2 bg-amber-700 text-amber-100 font-bold rounded-full w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center border-2 border-amber-900 shadow-md text-[10px] sm:text-sm">
                         🥉
                       </div>
@@ -97,9 +115,12 @@ const FinishScreen: React.FC<FinishScreenProps> = ({
             </div>
             
             {top3[0] && (
-              <div className="mt-8 bg-white/5 p-4 rounded-lg border border-yellow-400/20 animate-fade-in [animation-delay:2000ms]">
-                <p className="text-lg sm:text-xl text-gray-300">O grande campeão sobreviveu com o poder de</p>
-                <p className="text-xl sm:text-2xl font-bold mt-1 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500">{top3[0].power}</p>
+              <div className="mt-4 sm:mt-8 bg-white/5 p-3 sm:p-4 rounded-xl border border-yellow-400/20 animate-fade-in [animation-delay:2000ms]">
+                <p className="text-sm sm:text-lg text-gray-400">O grande campeão sobreviveu com o poder de</p>
+                <div className="flex flex-col items-center gap-1 mt-2">
+                    <p className="text-lg sm:text-xl font-black text-yellow-400 uppercase tracking-tighter">{top3[0].name}</p>
+                    <p className="text-xl sm:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500 font-orbitron">{top3[0].power}</p>
+                </div>
               </div>
             )}
           </div>
