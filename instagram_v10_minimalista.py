@@ -436,7 +436,8 @@ def main():
         followers = extract_all_followers(username, cookies, max_f)
         
         if followers:
-            csv_file = save_csv_minimalista(username, {f["username"]: f for f in followers})
+            # Removido CSV a pedido do usuário para gerar apenas JSON
+            # csv_file = save_csv_minimalista(username, {f["username"]: f for f in followers})
             json_file = save_json_minimalista(username, {f["username"]: f for f in followers})
             print(f"\n{'='*70}")
             print(f"✅ SUCESSO!")
@@ -444,7 +445,7 @@ def main():
             print(f"👤 Usuário: {username}")
             print(f"📊 Seguidores: {len(followers):,}")
             print(f"📊 Campos: username + profile_pic_url (2 campos)")
-            print(f"💾 CSV: {csv_file}")
+            # print(f"💾 CSV: {csv_file}")
             print(f"💾 JSON: {json_file}")
             print(f"{'='*70}\n")
         else:

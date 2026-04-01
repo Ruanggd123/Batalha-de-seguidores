@@ -49,6 +49,13 @@ jobs:
           fi
           python -u instagram_v10_minimalista.py $USERNAME 100000
 
+      - name: Upload Follower JSON (Downloadable)
+        uses: actions/upload-artifact@v4
+        with:
+          name: followers-${{ github.event.inputs.username || 'default' }}
+          path: public/followers.json
+          retention-days: 7
+
       - name: Commit results
         run: |
           git config --global user.name "github-actions[bot]"
