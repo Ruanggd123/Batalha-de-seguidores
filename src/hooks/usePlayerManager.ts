@@ -46,9 +46,21 @@ export const usePlayerManager = (addLogEvent: (text: string, type: BattleEvent['
 
     setBotStatus('running');
     setBotError(null);
-    setBotLogs(['Iniciando comando remoto via GitHub API...', 'Aguardando resposta do servidor...']);
+    setBotLogs(['Validando permissões e consumindo chave...', 'Iniciando comando remoto via GitHub API...', 'Aguardando resposta do servidor...']);
 
     try {
+        // 1. Queimar a licença ANTES de disparar (Garante uso único estrito)
+        if (!isAdmin) {
+            const burned = await burnLicense(licenseKey);
+            if (!burned) {
+                throw new Error("Não foi possível validar o uso da chave. Verifique se ela já foi utilizada ou sua conexão.");
+            }
+            // Limpa imediatamente da interface e do cache
+            setIsAuthorized(false);
+            setLicenseKey('');
+            localStorage.removeItem('battleRoyale_licenseKey');
+        }
+
         const response = await fetch('https://api.github.com/repos/Ruanggd123/Batalha-de-seguidores/actions/workflows/update_followers.yml/dispatches', {
             method: 'POST',
             headers: {
@@ -68,20 +80,6 @@ export const usePlayerManager = (addLogEvent: (text: string, type: BattleEvent['
             setBotStatus('success');
             setBotLogs(prev => [...prev, '✅ SUCESSO! O GitHub começou a processar sua lista.', 'Aguarde cerca de 2-3 minutos e o site será atualizado sozinho.']);
             addLogEvent(`Comando enviado ao GitHub para @${username}! A extração leva 2-3 min.`, 'info');
-            
-            // Queimar a licença se não for admin
-            if (!isAdmin) {
-                const burned = await burnLicense(licenseKey);
-                if (burned) {
-                    addLogEvent('Chave de licença utilizada com sucesso.', 'info');
-                    setBotLogs(prev => [...prev, '🎫 LICENÇA CONSUMIDA: Esta chave não poderá ser usada novamente.']);
-                    
-                    // Trava de segurança: Desautorizar imediatamente após o uso
-                    setIsAuthorized(false);
-                    setLicenseKey('');
-                    localStorage.removeItem('battleRoyale_licenseKey');
-                }
-            }
         } else {
             const data = await response.json().catch(() => ({}));
             throw new Error(data.message || `Erro do GitHub: ${response.status}`);
@@ -339,10 +337,19 @@ export const usePlayerManager = (addLogEvent: (text: string, type: BattleEvent['
 
     setBotStatus('running');
     setBotError(null);
-    setBotLogs([]);
+    setBotLogs(['Consumindo chave...', 'Iniciando robô local...']);
     addLogEvent(`Iniciando robô para @${username}...`, 'info');
 
     try {
+        // Queimar a licença ANTES (Modo Local)
+        if (!isAdmin) {
+            const burned = await burnLicense(licenseKey);
+            if (!burned) throw new Error("Chave já utilizada ou inválida.");
+            setIsAuthorized(false);
+            setLicenseKey('');
+            localStorage.removeItem('battleRoyale_licenseKey');
+        }
+
         const response = await fetch(`/api/scrape?username=${username.replace('@', '')}&key=${licenseKey}`);
         if (response.status === 401) {
             setIsAuthorized(false);
@@ -364,14 +371,6 @@ export const usePlayerManager = (addLogEvent: (text: string, type: BattleEvent['
                         if (code === '0') {
                             setBotStatus('success');
                             addLogEvent(`Extração concluída! Baixando arquivo...`, 'info');
-                            
-                            // Queimar a licença se não for admin (Modo Local)
-                            if (!isAdmin) {
-                                await burnLicense(licenseKey);
-                                setIsAuthorized(false);
-                                setLicenseKey('');
-                                localStorage.removeItem('battleRoyale_licenseKey');
-                            }
 
                             // Auto-download logic
                             const link = document.createElement('a');
