@@ -242,6 +242,21 @@ def save_checkpoint(username: str, checkpoint: Dict):
     with open(checkpoint_file, "w", encoding="utf-8") as f:
         json.dump(checkpoint, f, ensure_ascii=False, indent=2)
 
+def load_existing_followers() -> Dict:
+    """Carrega seguidores já salvos para permitir coleta incremental"""
+    path = "public/followers.json"
+    if not os.path.exists(path):
+        return {}
+    
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+            # Converte de [{name, imageUrl}] para {username: {username, profile_pic_url}}
+            return {item["name"]: {"username": item["name"], "profile_pic_url": item["imageUrl"]} for item in data}
+    except Exception as e:
+        print(f"  ⚠️ Aviso: Não foi possível carregar seguidores existentes: {e}")
+        return {}
+
 def save_csv_minimalista(username: str, followers_dict: Dict) -> str:
     """Salva CSV com APENAS username + profile_pic_url"""
     if not followers_dict:
@@ -317,6 +332,13 @@ def extract_all_followers(username: str, cookies: List[Dict], max_followers: int
         print(f"\n📋 Resumindo de checkpoint anterior...")
         print(f"   ✓ {len(followers_dict)} seguidores já extraídos")
         print(f"   ✓ Continuando de onde parou...\n")
+    else:
+        # Modo Incremental: Se não tem checkpoint, tenta carregar o que já foi salvo no passado
+        existing = load_existing_followers()
+        if existing:
+            print(f"\n🔄 Modo Incremental: {len(existing)} seguidores já cadastrados no site.")
+            print(f"   ✓ O script irá parar assim que encontrar um seguidor conhecido.\n")
+            followers_dict.update(existing)
     
     session = create_session(cookies)
     
@@ -349,17 +371,32 @@ def extract_all_followers(username: str, cookies: List[Dict], max_followers: int
                 print(f"✅ (vazio - fim)")
                 break
             
-            # Adiciona apenas NOVOS
+            # Adiciona apenas NOVOS e verifica parada (Modo Incremental)
             new_count = 0
+            stop_incremental = False
+            
             for f in followers:
-                if f["username"] and f["username"] not in followers_dict:
-                    followers_dict[f["username"]] = f
-                    extracted += 1
-                    new_count += 1
+                u = f.get("username")
+                if u:
+                    if u not in followers_dict:
+                        followers_dict[u] = f
+                        extracted += 1
+                        new_count += 1
+                    else:
+                        # Encontramos um seguidor que já existe no banco de dados!
+                        # Como o IG retorna do mais novo para o mais antigo, podemos parar aqui.
+                        stop_incremental = True
+                        break
             
             # Status
             percent = (extracted / max_followers) * 100
-            print(f"✅ +{new_count} novos | Total: {extracted:,}/{max_followers:,} ({percent:.1f}%)")
+            print(f"✅ +{new_count} novos | Total: {extracted:,} | ", end="")
+            
+            if stop_incremental:
+                print(f"🏁 Chegamos em seguidores conhecidos. Parando.")
+                break
+            
+            print(f"Meta: {max_followers:,} ({percent:.1f}%)")
             
             # Salva checkpoint a cada 1000
             if extracted - last_save_count >= 1000:

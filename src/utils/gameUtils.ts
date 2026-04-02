@@ -1,4 +1,5 @@
 import { MIN_PLAYERS_FOR_MAX_SIZE, MAX_PLAYERS_FOR_MIN_SIZE, MIN_PLAYER_SIZE, MAX_PLAYER_SIZE } from '../constants/gameConfig';
+import { DEFAULT_AVATAR } from '../constants/assets';
 
 // Helper to convert HSL to RGB for optimized rendering
 // h in [0, 360], s in [0, 1], l in [0, 1] -> {r, g, b} in [0, 255]
@@ -75,16 +76,76 @@ export const getColorFromId = (id: number): string => {
     return color;
 };
 
-// Helper function to safely load external images (bypasses CORS and CORP issues from Instagram)
-export const getSafeImageUrl = (url: string): string => {
-    if (!url || !url.startsWith('http')) return url;
-    
-    // Check if it's already proxied
-    if (url.includes('wsrv.nl') || url.includes('weserv.nl')) return url;
+/**
+ * Converts any image URL into a reliable, CORS-safe URL and manages avatar priority.
+ * 
+ * TIERED PROXYING:
+ * 1. Priority (Winner, Followed) -> unavatar.io (high quality, reliable username lookup)
+ * 2. Mass Followers -> weserv.nl (high speed, no 429 limits for direct CDN URLs)
+ * 3. Fallback -> DiceBear (Pixel Art)
+ */
+export const getSafeImageUrl = (url: string, username?: string, isPriority: boolean = false): string => {
+    if (!url) {
+        return username ? getDiceBearUrl(username.replace(/^@/, '').trim()) : DEFAULT_AVATAR;
+    }
 
-    // Use wsrv.nl to proxy, resize, and add proper CORS headers to the images
-    // Note: Use &n=-1 to disable some processing, &w and &h for performance
-    // Some Instagram URLs are very long and might fail in some proxies; encode properly.
-    // Instagram/Facebook URLs often work much better through weserv than direct or other proxies
-    return `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=128&h=128&fit=cover&output=webp&n=-1`;
+    // Fast path: known safe URLs (DiceBear, UI-Avatars, wsrv)
+    if (!url.startsWith('http')) return url;
+    if (url.includes('dicebear.com')) return url;
+    if (url.includes('ui-avatars.com')) return url;
+    if (url.includes('wsrv.nl')) return url;
+
+    const cleanName = username?.replace(/^@/, '').trim() || 'default';
+
+    // Instagram/Facebook CDN URLs: use wsrv.nl for mass loading, unavatar for priority
+    if (url.includes('instagram.') || url.includes('fbcdn.net') || url.includes('cdninstagram.com')) {
+        if (isPriority) return getUnavatarUrl(cleanName);
+        
+        // Use wsrv.nl for direct CDN URLs to bypass 429/CORS on high volume
+        // We use &errorredirect to handle expired URLs gracefully
+        const fallback = encodeURIComponent(getDiceBearUrl(cleanName));
+        return `https://wsrv.nl/?url=${encodeURIComponent(url)}&default=${fallback}&errorredirect=${fallback}`;
+    }
+
+    // Username-only case (no URL): use tiered unavatar/dicebear logic
+    if (username && !url.startsWith('http')) {
+        return isPriority ? getUnavatarUrl(cleanName) : getDiceBearUrl(cleanName);
+    }
+
+    // Non-Instagram URLs: proxy them anyway to avoid CORS issues
+    return `https://wsrv.nl/?url=${encodeURIComponent(url)}&default=${encodeURIComponent(getDiceBearUrl(cleanName))}`;
+};
+
+
+/**
+ * Specifically for the "Followed Player" or Winner, where we REALLY want 
+ * to try and get their real photo.
+ */
+export const getUnavatarUrl = (username: string): string => {
+    if (!username) return '';
+    const cleanName = username.replace(/^@/, '').trim();
+    const dbFallback = encodeURIComponent(getDiceBearUrl(cleanName));
+    return `https://unavatar.io/instagram/${cleanName}?fallback=${dbFallback}`;
+};
+
+// Fallback using server-side Pixel Art fallback
+export const getFallbackImageUrl = (username: string): string => {
+    if (!username) return '';
+    return getDiceBearUrl(username.replace(/^@/, '').trim());
+};
+
+/**
+ * Generates a reliable, unique pixel-art avatar based on a seed.
+ * DiceBear is very robust and handles CORS properly.
+ */
+export const getDiceBearUrl = (seed: string): string => {
+    return `https://api.dicebear.com/9.x/pixel-art/svg?seed=${encodeURIComponent(seed)}`;
+};
+
+/**
+ * Returns true only if the image is fully decoded AND not in the "broken" state.
+ * A broken image has complete=true but naturalWidth=0.
+ */
+export const isImageUsable = (img: HTMLImageElement): boolean => {
+    return img.complete && img.naturalWidth > 0;
 };

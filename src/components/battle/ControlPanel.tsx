@@ -1,6 +1,7 @@
 import React from 'react';
 import { Player, BattleEvent, GameState } from '../../types';
 import BattleLog from '../BattleLog';
+import { getSafeImageUrl } from '../../utils/gameUtils';
 
 interface ControlPanelProps {
   activeTheme: any;
@@ -15,14 +16,10 @@ interface ControlPanelProps {
   resetGame: () => void;
   isReelMode: boolean;
   setIsReelMode: (val: boolean) => void;
-  isNarrationEnabled: boolean;
-  setIsNarrationEnabled: (enabled: boolean) => void;
   bgmVolume: number;
   setBgmVolume: (vol: number) => void;
   sfxVolume: number;
   setSfxVolume: (vol: number) => void;
-  narrationVolume: number;
-  setNarrationVolume: (vol: number) => void;
 }
 
 const ControlPanel: React.FC<ControlPanelProps> = (props) => {
@@ -30,8 +27,8 @@ const ControlPanel: React.FC<ControlPanelProps> = (props) => {
     activeTheme, totalAliveCount, totalPlayers, followedPlayer,
     gameState, handleUnfollow, battleLog, isControlPanelOpen,
     setIsControlPanelOpen, resetGame, isReelMode, setIsReelMode,
-    isNarrationEnabled, setIsNarrationEnabled, bgmVolume, setBgmVolume,
-    sfxVolume, setSfxVolume, narrationVolume, setNarrationVolume
+    bgmVolume, setBgmVolume,
+    sfxVolume, setSfxVolume
   } = props;
 
   const panelWrapperClasses = `z-10 transition-transform duration-500 ease-in-out ${
@@ -73,10 +70,10 @@ const ControlPanel: React.FC<ControlPanelProps> = (props) => {
             <div className="flex items-center gap-3">
               {followedPlayer.instagramUrl ? (
                 <a href={followedPlayer.instagramUrl} target="_blank" rel="noopener noreferrer" className="block hover:scale-110 transition-transform flex-shrink-0">
-                  <img src={followedPlayer.imageUrl} alt={followedPlayer.name} className="w-10 h-10 lg:w-12 lg:h-12 rounded-full border-2 border-yellow-400 shadow-inner object-cover" />
+                  <img src={getSafeImageUrl(followedPlayer.imageUrl, followedPlayer.name, true)} alt={followedPlayer.name} className="w-10 h-10 lg:w-12 lg:h-12 rounded-full border-2 border-yellow-400 shadow-inner object-cover" />
                 </a>
               ) : (
-                <img src={followedPlayer.imageUrl} alt={followedPlayer.name} className="w-10 h-10 lg:w-12 lg:h-12 rounded-full border-2 border-yellow-400 shadow-inner object-cover" />
+                <img src={getSafeImageUrl(followedPlayer.imageUrl, followedPlayer.name, true)} alt={followedPlayer.name} className="w-10 h-10 lg:w-12 lg:h-12 rounded-full border-2 border-yellow-400 shadow-inner object-cover" />
               )}
               <div className="flex-grow min-w-0">
                 {followedPlayer.instagramUrl ? (
@@ -104,18 +101,6 @@ const ControlPanel: React.FC<ControlPanelProps> = (props) => {
 
         {/* Mid-Battle Audio Controls */}
         <div className="bg-black/40 p-4 rounded-2xl border border-white/10 space-y-4 flex-shrink-0">
-            <button 
-                onClick={() => setIsNarrationEnabled(!isNarrationEnabled)}
-                className={`w-full py-2.5 rounded-xl border font-bold text-xs font-orbitron transition-all flex items-center justify-center gap-2 ${
-                    isNarrationEnabled 
-                        ? 'bg-cyan-500/20 border-cyan-500 text-cyan-300' 
-                        : 'bg-gray-800/80 border-gray-600 text-gray-500'
-                }`}
-            >
-                <span className="text-lg">{isNarrationEnabled ? '🎙️' : '🔇'}</span>
-                {isNarrationEnabled ? 'NARRAÇÃO: ON' : 'NARRAÇÃO: OFF'}
-            </button>
-
             <div className="space-y-3">
                 <div className="space-y-1">
                     <div className="flex justify-between text-[10px] text-gray-400 font-bold uppercase tracking-widest"><span>Música</span><span>{Math.round(bgmVolume * 100)}%</span></div>
@@ -125,12 +110,9 @@ const ControlPanel: React.FC<ControlPanelProps> = (props) => {
                     <div className="flex justify-between text-[10px] text-gray-400 font-bold uppercase tracking-widest"><span>Efeitos</span><span>{Math.round(sfxVolume * 100)}%</span></div>
                     <input type="range" min="0" max="1" step="0.01" value={sfxVolume} onChange={(e) => setSfxVolume(parseFloat(e.target.value))} className="w-full h-1.5 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-green-500" />
                 </div>
-                <div className={`space-y-1 transition-opacity ${!isNarrationEnabled ? 'opacity-30' : ''}`}>
-                    <div className="flex justify-between text-[10px] text-gray-400 font-bold uppercase tracking-widest"><span>Voz</span><span>{Math.round(narrationVolume * 100)}%</span></div>
-                    <input type="range" min="0" max="1" step="0.01" value={narrationVolume} onChange={(e) => setNarrationVolume(parseFloat(e.target.value))} disabled={!isNarrationEnabled} className="w-full h-1.5 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-cyan-500" />
-                </div>
             </div>
         </div>
+
 
         <div className="flex flex-col gap-2 flex-shrink-0">
           <div className="grid grid-cols-2 gap-2">

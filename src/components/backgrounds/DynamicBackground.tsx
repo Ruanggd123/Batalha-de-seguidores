@@ -28,9 +28,35 @@ const DynamicBackground: React.FC = () => {
     
     const draw = () => {
         ctx.save();
-        ctx.translate(canvas.width / 2, canvas.height / 2);
-        ctx.clearRect(-canvas.width/2, -canvas.height/2, canvas.width, canvas.height);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+        // --- CYBER GRID FLOOR EFFECT ---
+        ctx.strokeStyle = 'rgba(192, 132, 252, 0.1)';
+        ctx.lineWidth = 1;
+        const spacing = 100;
+        const time = Date.now() * 0.0005;
+        const offsetX = (Math.sin(time) * 20);
+        const offsetY = (Math.cos(time) * 20);
+
+        for (let x = (offsetX % spacing); x < canvas.width; x += spacing) {
+            ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+        }
+        for (let y = (offsetY % spacing); y < canvas.height; y += spacing) {
+            ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+        }
+
+        // --- GLOWING ARENA BORDERS ---
+        const padding = 10;
+        ctx.shadowBlur = 20;
+        ctx.shadowColor = '#c084fc';
+        ctx.strokeStyle = 'rgba(192, 132, 252, 0.8)';
+        ctx.lineWidth = 4;
+        ctx.strokeRect(padding, padding, canvas.width - padding*2, canvas.height - padding*2);
+        
+        ctx.shadowBlur = 0; // Reset for stars
+
+        // --- MOVING STARS ---
+        ctx.translate(canvas.width / 2, canvas.height / 2);
         stars.forEach(star => {
             star.z -= 1;
             if (star.z <= 0) {
@@ -64,7 +90,19 @@ const DynamicBackground: React.FC = () => {
     };
   }, []);
 
-  return <canvas ref={canvasRef} className="absolute top-0 left-0 w-full h-full pointer-events-none -z-10" />;
+  return (
+    <div className="absolute inset-0 w-full h-full -z-10 overflow-hidden bg-[#0c0a15]">
+      {/* High-End Arena Floor Texture */}
+      <img 
+        src="/arena_floor_texture_1775137155078.png" 
+        className="absolute inset-0 w-full h-full object-cover opacity-75 scale-110 animate-[slow-zoom_30s_infinite_alternate]"
+        alt="Arena Floor"
+      />
+      <canvas ref={canvasRef} className="absolute top-0 left-0 w-full h-full pointer-events-none" />
+      {/* Vignette Overlay for Depth */}
+      <div className="absolute inset-0 bg-radial-gradient from-transparent to-black/60 pointer-events-none" />
+    </div>
+  );
 };
 
 export default DynamicBackground;

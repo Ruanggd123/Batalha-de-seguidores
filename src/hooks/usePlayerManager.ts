@@ -158,7 +158,7 @@ export const usePlayerManager = (addLogEvent: (text: string, type: BattleEvent['
     
     const initialPlayers = parsedPlayers.map((p, index) => ({
         ...p,
-        imageUrl: getSafeImageUrl(p.imageUrl),
+        imageUrl: getSafeImageUrl(p.imageUrl, p.name),
         id: index,
         hp: INITIAL_HP,
         maxHp: INITIAL_HP,
@@ -196,7 +196,7 @@ export const usePlayerManager = (addLogEvent: (text: string, type: BattleEvent['
                 } else if (name.startsWith('@')) {
                    instagramUrl = `https://www.instagram.com/${name.substring(1)}/`;
                 }
-                return { name, imageUrl: getSafeImageUrl(imageUrl), instagramUrl: instagramUrl || undefined };
+                return { name, imageUrl: getSafeImageUrl(imageUrl, name), instagramUrl: instagramUrl || undefined };
             }
             return null;
         }).filter((p) => p !== null) as any[];
@@ -229,7 +229,7 @@ export const usePlayerManager = (addLogEvent: (text: string, type: BattleEvent['
                     if (!imageUrl || imageUrl === '') imageUrl = DEFAULT_AVATAR;
                     return name ? { 
                         name: name.trim(), 
-                        imageUrl: getSafeImageUrl(imageUrl),
+                        imageUrl: getSafeImageUrl(imageUrl, name),
                         instagramUrl: instagramUrl || undefined
                     } : null;
                 }).filter(p => p !== null) as any[];
@@ -284,6 +284,9 @@ export const usePlayerManager = (addLogEvent: (text: string, type: BattleEvent['
         const info = await infoRes.json();
         setListMetadata(info);
       }
+
+      // If we only wanted metadata (e.g. on startup), return here
+      if (isSilent) return;
 
       // 2. Fetch followers list
       const url = `followers.json?t=${Date.now()}`;
@@ -395,7 +398,7 @@ export const usePlayerManager = (addLogEvent: (text: string, type: BattleEvent['
     }
   }, [addLogEvent, licenseKey]);
 
-  // Load followers metadata on mount
+  // Load followers metadata on mount (Silent doesn't trigger player init anymore)
   useEffect(() => {
     loadInstagramData(true);
   }, [loadInstagramData]);

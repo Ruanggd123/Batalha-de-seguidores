@@ -9,23 +9,16 @@ interface SetupViewProps {
   setGameMode: (mode: GameMode) => void;
   playerSizeMultiplier: number;
   setPlayerSizeMultiplier: (size: number) => void;
-  isNarrationEnabled: boolean;
-  setIsNarrationEnabled: (enabled: boolean) => void;
   bgmVolume: number;
   setBgmVolume: (vol: number) => void;
   sfxVolume: number;
   setSfxVolume: (vol: number) => void;
-  narrationVolume: number;
-  setNarrationVolume: (vol: number) => void;
   profileName: string;
   setProfileName: (name: string) => void;
   platform: Platform;
   setPlatform: (p: Platform) => void;
   jsonInput: string;
   setJsonInput: (val: string) => void;
-  availableVoices: SpeechSynthesisVoice[];
-  selectedVoiceURI: string;
-  setSelectedVoiceURI: (uri: string) => void;
   targetDuration: number;
   setTargetDuration: (dur: number) => void;
   isSpectatorMode: boolean;
@@ -55,22 +48,25 @@ interface SetupViewProps {
   isReelMode: boolean;
   setIsReelMode: (val: boolean) => void;
   listMetadata: { lastUpdate: string; username: string; count: number } | null;
+  creatorName: string;
+  setCreatorName: (val: string) => void;
 }
 
 const SetupView: React.FC<SetupViewProps> = (props) => {
   const { 
     gameMode, setGameMode, playerSizeMultiplier, setPlayerSizeMultiplier,
-    isNarrationEnabled, setIsNarrationEnabled, bgmVolume, setBgmVolume,
-    sfxVolume, setSfxVolume, narrationVolume, setNarrationVolume,
+    bgmVolume, setBgmVolume,
+    sfxVolume, setSfxVolume,
     isReelMode, setIsReelMode,
     profileName, setProfileName, platform, setPlatform, jsonInput, setJsonInput,
     isSpectatorMode, startSpectatorMode, processData, handleFileUpload,
     handleChooseFileClick, handleDragOver, handleDragLeave, handleDrop,
-    fileInputRef, availableVoices, selectedVoiceURI, setSelectedVoiceURI,
+    fileInputRef,
     targetDuration, setTargetDuration, loadInstagramData, isAutoLoading,
     scrapeFromBot, botStatus, botError, botLogs,
     licenseKey, setLicenseKey, isAuthorized, isAdmin, isValidatingKey,
-    isDraggingOver, triggerGithubAction, githubToken, listMetadata
+    isDraggingOver, triggerGithubAction, githubToken, listMetadata, preloadingProgress,
+    creatorName, setCreatorName
   } = props;
 
   const [instagramSearch, setInstagramSearch] = React.useState('');
@@ -107,8 +103,8 @@ const SetupView: React.FC<SetupViewProps> = (props) => {
         {isSpectatorMode && <p className="text-yellow-400 font-bold font-orbitron animate-pulse mt-1">MODO ESPECTADOR</p>}
       </header>
       
-      <div className="absolute inset-0 z-10 overflow-y-auto p-4 flex flex-col items-center pt-24 sm:pt-28">
-        <div className="w-full max-w-6xl grid lg:grid-cols-2 gap-8 items-start my-auto">
+      <div className="absolute inset-0 z-10 overflow-y-auto p-4 flex flex-col items-center pt-24 sm:pt-28 landscape:pt-16">
+        <div className="w-full max-w-6xl grid lg:grid-cols-2 gap-8 items-start my-auto landscape:grid-cols-2 landscape:gap-4">
           {/* --- Column Left: Customization --- */}
           <div className="animate-fade-in-left space-y-8 p-6 sm:p-8 bg-gray-950/40 backdrop-blur-2xl rounded-2xl border border-white/10 relative overflow-hidden">
              <div className="absolute -inset-px rounded-2xl" style={{
@@ -154,18 +150,22 @@ const SetupView: React.FC<SetupViewProps> = (props) => {
                                 ))}
                             </div>
                         </div>
-                        <div className="grid grid-cols-2 gap-3">
+                        <div className="grid grid-cols-1 gap-3">
                             <div className="w-full">
-                                <label className="block text-base font-orbitron mb-2 text-gray-300">Narração</label>
-                                <button 
-                                    onClick={() => setIsNarrationEnabled(!isNarrationEnabled)}
-                                    className={`w-full py-3 rounded-xl border-2 font-bold font-orbitron transition-all ${isNarrationEnabled ? 'bg-cyan-500/20 border-cyan-500 text-cyan-300' : 'bg-gray-800/80 border-gray-600 text-gray-500 grayscale'}`}
-                                >
-                                    {isNarrationEnabled ? '🎙️ SIM' : '🔇 NÃO'}
-                                </button>
+                                <label className="block text-[10px] font-bold text-gray-400 uppercase mb-2 tracking-widest">Seu Instagram (Divulgação)</label>
+                                <div className="relative group">
+                                    <input 
+                                        type="text" 
+                                        value={creatorName}
+                                        onChange={(e) => setCreatorName(e.target.value.toLowerCase().replace('@', ''))}
+                                        placeholder="Ex: seu_user"
+                                        className="w-full bg-black/40 border border-white/10 rounded-xl p-3 pl-10 text-white font-mono focus:outline-none focus:border-purple-500 transition-all hover:bg-black/60"
+                                    />
+                                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-bold">@</div>
+                                </div>
                             </div>
                             <div className="w-full">
-                                <label className="block text-base font-orbitron mb-2 text-gray-300">Tela</label>
+                                <label className="block text-[10px] font-bold text-gray-400 uppercase mb-2 tracking-widest">Orientação da Arena</label>
                                 <button 
                                     onClick={() => setIsReelMode(!isReelMode)}
                                     className={`w-full py-3 rounded-xl border-2 font-bold font-orbitron transition-all ${isReelMode ? 'bg-purple-500/20 border-purple-500 text-purple-300' : 'bg-indigo-500/20 border-indigo-500 text-indigo-300'}`}
@@ -174,6 +174,7 @@ const SetupView: React.FC<SetupViewProps> = (props) => {
                                 </button>
                             </div>
                         </div>
+
                     </div>
                     <div className="space-y-3">
                         {/* Audio Controls */}
@@ -300,6 +301,15 @@ const SetupView: React.FC<SetupViewProps> = (props) => {
                                         {isAutoLoading ? 'LENDO ARQUIVO...' : '📥 RECARREGAR LISTA ATUALIZADA'}
                                     </div>
                                 </button>
+
+                                {listMetadata && preloadingProgress < 100 && (
+                                    <div className="w-full bg-gray-800 rounded-full h-1.5 mt-2 overflow-hidden border border-white/5">
+                                        <div 
+                                            className="bg-blue-500 h-full transition-all duration-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]" 
+                                            style={{ width: `${preloadingProgress}%` }}
+                                        ></div>
+                                    </div>
+                                )}
 
                                 <div className="grid grid-cols-2 gap-2 mt-2">
                                     {botStatus === 'running' ? (

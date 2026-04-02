@@ -4,10 +4,10 @@ import { HitEffect, FloatingText, Player } from '../../types';
 interface BattleArenaProps {
   arenaRef: React.RefObject<HTMLDivElement>;
   canvasRef: React.RefObject<HTMLCanvasElement>;
-  hitEffects: HitEffect[];
-  floatingTexts: FloatingText[];
   isReelMode: boolean;
   getArenaTransform: () => React.CSSProperties;
+  handleCanvasClick: (e: React.MouseEvent<HTMLCanvasElement>) => void;
+  handleCanvasMouseMove: (e: React.MouseEvent<HTMLCanvasElement>) => void;
   handleCanvasMouseLeave: () => void;
 }
 
@@ -20,7 +20,7 @@ const BattleArena: React.FC<BattleArenaProps> = ({
       <div 
         ref={arenaRef} 
         style={getArenaTransform()} 
-        className={`${isReelMode ? 'relative h-full aspect-[9/16] border-x-2 border-gray-800' : 'absolute inset-0'}`}
+        className={`${isReelMode ? 'relative h-full max-h-screen aspect-[9/16] border-x-2 border-fuchsia-500/30 bg-black/40 shadow-2xl overflow-hidden' : 'absolute inset-0'}`}
       >
         <canvas 
           ref={canvasRef} 

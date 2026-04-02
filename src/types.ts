@@ -19,6 +19,7 @@ export interface Player {
   targetSpeed?: number; // Desired speed for smoother acceleration
   lastCollisionTime?: number;
   isCharged?: boolean; // For DVD mode: true if the player hit a wall
+  image?: HTMLImageElement; // Pre-loaded image object for direct rendering
 }
 
 export interface BattleEvent {

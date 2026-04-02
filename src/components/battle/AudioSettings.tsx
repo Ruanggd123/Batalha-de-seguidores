@@ -7,10 +7,6 @@ interface AudioSettingsProps {
   setBgmVolume: (v: number) => void;
   sfxVolume: number;
   setSfxVolume: (v: number) => void;
-  narrationVolume: number;
-  setNarrationVolume: (v: number) => void;
-  isNarrationEnabled: boolean;
-  setIsNarrationEnabled: (e: boolean) => void;
   isOpen: boolean;
   onClose: () => void;
 }
@@ -20,8 +16,6 @@ const AudioSettings: React.FC<AudioSettingsProps> = (props) => {
     isMuted, setIsMuted,
     bgmVolume, setBgmVolume,
     sfxVolume, setSfxVolume,
-    narrationVolume, setNarrationVolume,
-    isNarrationEnabled, setIsNarrationEnabled,
     isOpen, onClose
   } = props;
 
@@ -78,33 +72,9 @@ const AudioSettings: React.FC<AudioSettingsProps> = (props) => {
           />
         </div>
 
-        {/* Narration Toggle & Volume */}
-        <div className="pt-2 border-t border-white/10 space-y-3">
-          <button 
-            onClick={() => setIsNarrationEnabled(!isNarrationEnabled)}
-            className={`w-full py-2 rounded-xl border text-[10px] font-bold font-orbitron transition-all flex items-center justify-center gap-2 ${
-              isNarrationEnabled ? 'bg-cyan-500/20 border-cyan-500 text-cyan-300' : 'bg-gray-800 border-gray-600 text-gray-500'
-            }`}
-          >
-            {isNarrationEnabled ? '🎙️ NARRAÇÃO ATIVA' : '🔇 NARRAÇÃO DESLIGADA'}
-          </button>
-          
-          <div className={`space-y-1 transition-opacity ${!isNarrationEnabled ? 'opacity-30' : ''}`}>
-            <div className="flex justify-between text-[10px] font-black text-gray-400 uppercase tracking-widest">
-              <span>Voz do Narrador</span>
-              <span>{Math.round(narrationVolume * 100)}%</span>
-            </div>
-            <input 
-              type="range" min="0" max="1" step="0.01" 
-              value={narrationVolume} 
-              onChange={(e) => setNarrationVolume(parseFloat(e.target.value))}
-              disabled={!isNarrationEnabled}
-              className="w-full h-1.5 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-cyan-500"
-            />
-          </div>
-        </div>
       </div>
     </div>
+
   );
 };
 

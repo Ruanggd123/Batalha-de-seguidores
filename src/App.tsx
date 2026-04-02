@@ -1,11 +1,11 @@
 import React, { useState, useCallback, useRef, useMemo, useEffect } from 'react';
 import { BGM_PLAYLIST, themes, AOE_RADIUS, METEOR_RADIUS } from './constants/gameConfig';
-import { getPlayerSize, getColorFromId, getSafeImageUrl } from './utils/gameUtils';
+import { getPlayerSize, getColorFromId, getSafeImageUrl, getFallbackImageUrl, getDiceBearUrl, getUnavatarUrl, isImageUsable } from './utils/gameUtils';
 import { useBattleAudio } from './hooks/useBattleAudio';
 import { usePlayerManager } from './hooks/usePlayerManager';
 import { useBattleEngine } from './hooks/useBattleEngine';
 import { generateDemoPlayers } from './services/demoPlayerService';
-import { HitEffect, Player, GameState } from './types';
+import { HitEffect, Player, GameState, GameMode } from './types';
 
 // Components
 import SetupView from './components/setup/SetupView';
@@ -14,7 +14,6 @@ import ControlPanel from './components/battle/ControlPanel';
 import FinishScreen from './components/battle/FinishScreen';
 import CountdownOverlay from './components/battle/CountdownOverlay';
 import DynamicBackground from './components/backgrounds/DynamicBackground';
-import Subtitles from './components/battle/Subtitles';
 import AudioSettings from './components/battle/AudioSettings';
 import { DEFAULT_AVATAR } from './constants/assets';
 
@@ -22,11 +21,13 @@ const App: React.FC = () => {
   // 1. Hooks initialization
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageCache = useRef<Record<string, HTMLImageElement>>({});
-  const [targetDuration, setTargetDuration] = useState(60);
+  const [targetDuration, setTargetDuration] = useState(30);
+  const [preloadingProgress, setPreloadingProgress] = useState(0);
 
   // Audio Hook - provides playBeep, narrateText, etc.
   const audio = useBattleAudio(); 
   const [isAudioSettingsOpen, setIsAudioSettingsOpen] = useState(false);
+  const [creatorName, setCreatorName] = useState('batalha_seguidores');
   
   // Data Manager Hook
   const playerManager = usePlayerManager(useCallback((text, type) => {
@@ -59,10 +60,10 @@ const App: React.FC = () => {
   const activeTheme = themes[engine.gameMode].classes;
   const totalAliveCount = engine.totalAliveCount;
 
-  // Ensure narration stops on game end
+  // Ensure audio stops correctly on game end
   useEffect(() => {
     if (engine.gameState === GameState.Finished || engine.gameState === GameState.AwaitingPlayers) {
-        audio.stopNarration();
+        // No-op for now as narration is removed, but keeping for future hook sync if needed
     }
   }, [engine.gameState, audio]);
 
@@ -78,21 +79,27 @@ const App: React.FC = () => {
 
   // 3. Helper functions that depend on state/refs
   const getArenaTransform = () => {
-      const transition = 'transform 1.5s ease-in-out';
-      const playerToFollow = followedPlayer || engine.winner;
+      const transition = 'transform 0.5s ease-out';
+      const followedPlayer = useMemo(() => playerManager.players.find(p => p.id === engine.followedPlayerId), [playerManager.players, engine.followedPlayerId]);
+      
+      const zoomData = followedPlayer ? { x: followedPlayer.x, y: followedPlayer.y, scale: 1.7 } : null;
 
-      if (playerToFollow && engine.arenaRef.current) {
-          let zoom = engine.winner ? 2.5 : 1.7;
+      if (zoomData && engine.arenaRef.current) {
           const arena = engine.arenaRef.current;
           const targetX = arena.clientWidth / 2;
           const targetY = arena.clientHeight / 2;
-          const translateX = targetX - playerToFollow.x * zoom;
-          const translateY = targetY - playerToFollow.y * zoom;
+          const translateX = targetX - zoomData.x * zoomData.scale;
+          const translateY = targetY - zoomData.y * zoomData.scale;
 
-          return { transform: `scale(${zoom}) translate(${translateX}px, ${translateY}px)`, transition };
+          return { 
+            transform: `translate(${translateX}px, ${translateY}px) scale(${zoomData.scale})`, 
+            transition,
+            transformOrigin: '0 0'
+          };
       }
-      return { transform: 'scale(1) translate(0px, 0px)', transition };
+      return { transform: 'scale(1) translate(0px, 0px)', transition, transformOrigin: 'center' };
   };
+
 
   const getEffectClass = (type: HitEffect['type']) => {
     switch(type) {
@@ -183,28 +190,137 @@ const App: React.FC = () => {
     engine.setIsSpectatorMode(true);
   };
 
-  // Image preloading logic - Limited to a small batch to avoid congestion
+  // Image preloading logic — VIP INITIAL LOAD (First 200)
   useEffect(() => {
-    if (playerManager.totalPlayersRef.current === 0) return;
+    // 🛡️ SMART LOADING: We now load the first 1000 followers initially!
+    // This solves the issue of avatars not appearing for large follower counts.
+    const playersToPreload = playerManager.allPlayersRef.current.slice(0, 1000);
+    if (playersToPreload.length === 0) {
+        setPreloadingProgress(100);
+        return;
+    }
+
+    let loadedCount = 0;
+    const priorityCount = playersToPreload.length;
     
-    // Preload the first 5000 players to ensure images appear immediately for even massive matches
-    const playersToPreload = playerManager.allPlayersRef.current.slice(0, 5000);
-    
-    playersToPreload.forEach(player => {
-        const safeUrl = getSafeImageUrl(player.imageUrl);
-        if (!imageCache.current[safeUrl]) {
+    // 🚀 HIGHER CONCURRENCY: Modern browsers can handle 30+ concurrent requests on CDNs
+    const MAX_CONCURRENT = 30; 
+    let activeCount = 0;
+    let queueIdx = 0;
+    let isTerminated = false;
+
+    const markLoaded = (cacheKey: string, img: HTMLImageElement, index: number) => {
+        if (isTerminated) return;
+        imageCache.current[cacheKey] = img;
+        
+        // 🚀 LINK DIRECTLY: Set the image property on the player object for instant render
+        if (playersToPreload[index]) {
+            playersToPreload[index].image = img;
+        }
+
+        if (index < priorityCount) {
+            loadedCount++;
+            setPreloadingProgress(Math.round((loadedCount / priorityCount) * 100));
+        }
+        activeCount--;
+        processQueue();
+    };
+
+    const loadOne = (index: number) => {
+        if (isTerminated) return;
+        const player = playersToPreload[index];
+        // 🚀 SPEED FIX: Use isPriority=false for BOTH mass loaders. 
+        // unavatar.io is too slow for 1000+ followers at once.
+        const safeUrl = getSafeImageUrl(player.imageUrl, player.name, false); 
+
+        // Already cached?
+        if (imageCache.current[safeUrl]) {
+            if (index < priorityCount) {
+                loadedCount++;
+                setPreloadingProgress(Math.round((loadedCount / priorityCount) * 100));
+            }
+            activeCount--;
+            processQueue();
+            return;
+        }
+
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => markLoaded(safeUrl, img, index);
+        img.onerror = () => {
+            // Last resort: default avatar
+            const defImg = new Image();
+            defImg.src = DEFAULT_AVATAR;
+            defImg.onload = () => markLoaded(safeUrl, defImg, index);
+        };
+        img.src = safeUrl;
+    };
+
+    const processQueue = () => {
+        if (isTerminated) return;
+        while (activeCount < MAX_CONCURRENT && queueIdx < playersToPreload.length) {
+            activeCount++;
+            loadOne(queueIdx++);
+        }
+    };
+
+    processQueue();
+    return () => { isTerminated = true; };
+  }, [playerManager.totalPlayersRef.current]);
+
+  // 🛡️ SMART JIT LOADING: Load real images for survivors when count drops below 1000
+  // or for the player being followed.
+  const survivorLoadTriggered = useRef(false);
+  useEffect(() => {
+    if (engine.gameState !== GameState.Running) return;
+
+    // Trigger when survivors drop to 2500 — they are now large enough to see!
+    if (totalAliveCount <= 2500 && !survivorLoadTriggered.current) {
+        survivorLoadTriggered.current = true;
+        const survivors = playerManager.players.filter(p => p.isAlive);
+        
+        // Load in batches of 40 to be more efficient for mass loading
+        let idx = 0;
+        const loadNextBatch = () => {
+            const end = Math.min(idx + 40, survivors.length);
+            for (; idx < end; idx++) {
+                const p = survivors[idx];
+                // 🚀 SPEED OPTIMIZATION: Use isPriority=false for mass loading to bypass unavatar.io slowness
+                const url = getSafeImageUrl(p.imageUrl, p.name, false); 
+                if (!imageCache.current[url]) {
+                    const img = new Image();
+                    img.crossOrigin = 'anonymous';
+                    img.onload = () => { 
+                        if (img.naturalWidth > 0) {
+                            imageCache.current[url] = img;
+                            p.image = img; // 🚀 Link directly for instant arena render
+                        }
+                    };
+                    img.src = url;
+                } else if (imageCache.current[url]) {
+                    p.image = imageCache.current[url];
+                }
+            }
+            if (idx < survivors.length) setTimeout(loadNextBatch, 150);
+        };
+        loadNextBatch();
+    }
+  }, [totalAliveCount, engine.gameState]);
+
+  // Priority Loading for the Followed Player
+  useEffect(() => {
+    if (engine.gameState === GameState.Running && followedPlayer) {
+        const vipUrl = getUnavatarUrl(followedPlayer.name);
+        if (!imageCache.current[vipUrl]) {
             const img = new Image();
             img.crossOrigin = 'anonymous';
-            img.src = safeUrl;
-            img.onload = () => { imageCache.current[safeUrl] = img; };
-            img.onerror = () => {
-                const defImg = new Image();
-                defImg.src = DEFAULT_AVATAR;
-                imageCache.current[safeUrl] = defImg;
+            img.onload = () => {
+                if (img.naturalWidth > 0) imageCache.current[vipUrl] = img;
             };
+            img.src = vipUrl;
         }
-    });
-  }, [playerManager.totalPlayersRef.current]);
+    }
+  }, [followedPlayer?.id, engine.gameState]);
 
   // Main Drawing Loop sync (Hook doesn't draw to DOM, it just calculates)
   // Actually, the Draw loop was inside useBattleEngine in my previous implementation.
@@ -284,9 +400,6 @@ const App: React.FC = () => {
           handleDragLeave={() => setIsDraggingOver(false)}
           handleDrop={(e) => { e.preventDefault(); setIsDraggingOver(false); playerManager.processFile(e.dataTransfer.files[0]); }}
           isDraggingOver={isDraggingOver}
-          availableVoices={audio.availableVoices}
-          selectedVoiceURI={audio.selectedVoiceURI}
-          setSelectedVoiceURI={audio.setSelectedVoiceURI}
           processData={playerManager.processData}
           isAutoLoading={playerManager.isAutoLoading}
           scrapeFromBot={playerManager.scrapeFromBot}
@@ -299,33 +412,46 @@ const App: React.FC = () => {
           isAuthorized={playerManager.isAuthorized}
           isAdmin={playerManager.isAdmin}
           isValidatingKey={playerManager.isValidatingKey}
-          triggerGithubAction={playerManager.triggerGithubAction}
           isReelMode={engine.isReelMode}
           setIsReelMode={engine.setIsReelMode}
           listMetadata={playerManager.listMetadata}
+          creatorName={creatorName}
+          setCreatorName={setCreatorName}
         />
       )}
       
       {(engine.gameState !== GameState.AwaitingPlayers || playerManager.totalPlayersRef.current > 0) && (
-        <div className={`w-full h-full relative transition-opacity duration-500 ${engine.gameMode === 'ELASTIC_CLASH' && engine.gameState === 'RUNNING' ? 'bg-[#3b0d5c]' : ''}`}>
-          {/* Instagram Handle Overlay for Elastic Clash */}
-          {engine.gameMode === 'ELASTIC_CLASH' && engine.gameState === 'RUNNING' && (
-              <div className="absolute top-6 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center pointer-events-none animate-fade-in">
-                  <span className="text-white/80 font-bold text-lg sm:text-2xl font-orbitron drop-shadow-lg tracking-widest">@batalha_seguidores</span>
-                  <div className="flex items-center gap-2 mt-1 opacity-90">
-                      <svg className="w-5 h-5 sm:w-8 sm:h-8 fill-white shadow-lg" viewBox="0 0 24 24">
-                          <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4s1.791-4 4-4 4 1.791 4 4-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
-                      </svg>
-                      <span className="text-white font-black text-xs sm:text-sm tracking-tighter uppercase drop-shadow-md">@BATALHA_SEGUIDORES</span>
+        <div className={`w-full h-full relative transition-opacity duration-500 ${engine.gameMode === GameMode.ElasticClash && engine.gameState === GameState.Running ? 'bg-[#3b0d5c]' : ''}`}>
+          {/* Central Branding Overlay - Dynamic with creator name */}
+          {engine.gameState === GameState.Running && (
+              <div className="absolute top-6 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center pointer-events-none animate-fade-in group">
+                  <div className="bg-black/60 backdrop-blur-xl px-6 py-2 rounded-2xl border border-white/10 flex flex-col items-center shadow-2xl">
+                      <span className="text-white/40 font-bold text-[8px] uppercase tracking-[0.4em] mb-1">Simulador de Batalha</span>
+                      <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-pink-600 via-purple-600 to-indigo-600 flex items-center justify-center shadow-[0_0_15px_rgba(192,132,252,0.3)]">
+                             <svg className="w-5 h-5 fill-white" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4s1.791-4 4-4 4 1.791 4 4-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+                          </div>
+                          <span className="text-white font-black text-xs sm:text-2xl tracking-tighter uppercase drop-shadow-md">@{creatorName.toUpperCase().replace('@', '')}</span>
+                      </div>
+                  </div>
+              </div>
+          )}
+
+          {/* New "Siga @creator" Permanent Overlay during battle */}
+          {engine.gameState === GameState.Running && (
+              <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center pointer-events-none">
+                  <div className="px-4 py-2 bg-black/60 backdrop-blur-xl border border-white/10 rounded-full flex items-center gap-3 shadow-2xl animate-bounce">
+                      <div className="bg-gradient-to-tr from-pink-600 to-purple-600 p-1 rounded-full text-[8px] text-white font-black uppercase">IG</div>
+                      <span className="text-white font-black text-xs sm:text-base tracking-widest drop-shadow-md">SIGA @<span className={activeTheme.text}>{creatorName.toUpperCase().replace('@', '')}</span></span>
                   </div>
               </div>
           )}
           <div className="w-full h-full lg:pr-[320px] xl:pr-[400px] relative overflow-hidden">
-            {engine.gameState === GameState.Running && playerManager.totalPlayersRef.current > 0 && (
-                 <div className={`absolute top-6 left-6 z-30 transition-all duration-300 ${engine.gameMode === 'ELASTIC_CLASH' ? 'scale-110' : ''}`}>
-                    <div className="font-black font-orbitron text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] tracking-wider flex items-baseline gap-2">
-                        <span className="text-xs sm:text-sm text-gray-300 opacity-80">Vivos:</span> 
-                        <span className="text-white text-2xl sm:text-4xl">{totalAliveCount}</span>
+             {engine.gameState === GameState.Running && playerManager.totalPlayersRef.current > 0 && (
+                  <div className={`absolute top-4 left-4 sm:top-6 sm:left-6 z-30 transition-all duration-300 ${engine.gameMode === GameMode.ElasticClash ? 'scale-[0.7] sm:scale-100 origin-top-left' : ''}`}>
+                    <div className="font-black font-orbitron text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] tracking-wider flex items-baseline gap-1 sm:gap-2">
+                        <span className="text-[10px] sm:text-sm text-gray-300 opacity-80 uppercase">Vivos:</span> 
+                        <span className="text-white text-lg sm:text-5xl">{totalAliveCount}</span>
                     </div>
                 </div>
             )}
@@ -339,8 +465,6 @@ const App: React.FC = () => {
                 handleCanvasMouseMove={handleCanvasMouseMove}
                 handleCanvasMouseLeave={() => setHoveredPlayerName(null)}
             />
-
-            <Subtitles text={audio.currentNarration} />
 
              {engine.gameState === GameState.AwaitingPlayers && playerManager.totalPlayersRef.current > 0 && (
               <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/60 backdrop-blur-md p-6 text-center">
@@ -369,14 +493,10 @@ const App: React.FC = () => {
             resetGame={engine.resetGame}
             isReelMode={engine.isReelMode}
             setIsReelMode={engine.setIsReelMode}
-            isNarrationEnabled={audio.isNarrationEnabled}
-            setIsNarrationEnabled={audio.setIsNarrationEnabled}
             bgmVolume={audio.bgmVolume}
             setBgmVolume={audio.setBgmVolume}
             sfxVolume={audio.sfxVolume}
             setSfxVolume={audio.setSfxVolume}
-            narrationVolume={audio.narrationVolume}
-            setNarrationVolume={audio.setNarrationVolume}
           />
         </div>
       )}

@@ -47,13 +47,10 @@ export const SPAWN_ACCELERATION = 1.1; // 10% increase per batch
 export const SPAWN_INTERVAL_MS = 16; // 60fps-ish
 
 export const BGM_PLAYLIST = [
-  { url: '/audio/battle-bgm.mp3', title: 'Epic Battle (Local)' },
-  { url: 'https://upload.wikimedia.org/wikipedia/commons/e/ec/Wagner_-_Ride_of_the_Valkyries.mp3', title: 'Wagner - Valkyries' },
-  { url: 'https://upload.wikimedia.org/wikipedia/commons/1/15/In_the_Hall_of_the_Mountain_King_-_Edvard_Grieg_-_The_Helsinki_Philharmonic_Orchestra.mp3', title: 'Grieg - Mountain King' },
-  { url: 'https://upload.wikimedia.org/wikipedia/commons/0/09/Mars_the_Bringer_of_War_-_Holst.mp3', title: 'Holst - Mars' },
-  { url: 'https://upload.wikimedia.org/wikipedia/commons/b/b3/Dvorak_-_Symphony_No._9_%22From_the_New_World%22_-_IV._Allegro_con_fuoco.mp3', title: 'Dvořák - New World' },
-  { url: 'https://upload.wikimedia.org/wikipedia/commons/a/af/Verdi_-_Dies_Irae.mp3', title: 'Verdi - Dies Irae' },
-  { url: 'https://upload.wikimedia.org/wikipedia/commons/6/6d/Beethoven_Symphony_No_5_Movement_1.mp3', title: 'Beethoven - 5th Sym' }
+  { url: 'audio/battle-bgm.mp3', title: 'Epic Battle (Local)' },
+  { url: 'https://raw.githubusercontent.com/the-muda-house/BattleRoyaleResources/main/music/action_rock.mp3', title: 'Power Rush (Stable)' },
+  { url: 'https://raw.githubusercontent.com/the-muda-house/BattleRoyaleResources/main/music/epic_glory.mp3', title: 'Glory (Stable)' },
+  { url: 'https://raw.githubusercontent.com/the-muda-house/BattleRoyaleResources/main/music/combat_clash.mp3', title: 'Combat Clash (Stable)' }
 ];
 
 export const gameModeDetails = {
