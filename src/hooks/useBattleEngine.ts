@@ -104,11 +104,7 @@ export const useBattleEngine = (
     const isSuddenDeath = progress >= 0.97 && currentCount > 1;
 
     // --- MODE OVERRIDE FOR ELASTIC CLASH ---
-    // In Elastic Clash, damage strictly only happens on physical collisions.
-    // We skip all automatic battle rounds and damage-over-time logic.
-    if (currentMode === GameMode.ElasticClash) {
-        return;
-    }
+    // Removido o bloqueio para permitir que o Massacre ocorra e a batalha dure o tempo correto.
 
     // Removed redundant 1-player centering as we now move directly to the Podium component
 
@@ -416,10 +412,33 @@ export const useBattleEngine = (
                 const bm = margins.bottom;
 
                 let nx = p.x + nVx; let ny = p.y + nVy;
-                if (nx < radius) { nx = radius; nVx = Math.abs(nVx); if (p.angle !== undefined) p.angle = Math.PI - p.angle; }
-                if (nx > lw - radius) { nx = lw - radius; nVx = -Math.abs(nVx); if (p.angle !== undefined) p.angle = Math.PI - p.angle; }
-                if (ny < tm + radius) { ny = tm + radius; nVy = Math.abs(nVy); if (p.angle !== undefined) p.angle = -p.angle; }
-                if (ny > lh - bm - radius) { ny = lh - bm - radius; nVy = -Math.abs(nVy); if (p.angle !== undefined) p.angle = -p.angle; }
+                if (nx < radius) { 
+                  nx = radius; nVx = Math.abs(nVx); 
+                  if (p.angle !== undefined) p.angle = Math.PI - p.angle;
+                  if (gameMode === GameMode.ElasticClash) { p.hp -= 0.5; addHitEffect(p.x, p.y, '#ffffff', 'hit'); }
+                }
+                if (nx > lw - radius) { 
+                  nx = lw - radius; nVx = -Math.abs(nVx); 
+                  if (p.angle !== undefined) p.angle = Math.PI - p.angle;
+                  if (gameMode === GameMode.ElasticClash) { p.hp -= 0.5; addHitEffect(p.x, p.y, '#ffffff', 'hit'); }
+                }
+                if (ny < tm + radius) { 
+                  ny = tm + radius; nVy = Math.abs(nVy); 
+                  if (p.angle !== undefined) p.angle = -p.angle;
+                  if (gameMode === GameMode.ElasticClash) { p.hp -= 0.5; addHitEffect(p.x, p.y, '#ffffff', 'hit'); }
+                }
+                if (ny > lh - bm - radius) { 
+                  ny = lh - bm - radius; nVy = -Math.abs(nVy); 
+                  if (p.angle !== undefined) p.angle = -p.angle;
+                  if (gameMode === GameMode.ElasticClash) { p.hp -= 0.5; addHitEffect(p.x, p.y, '#ffffff', 'hit'); }
+                }
+                
+                // Check if died from wall hit
+                if (gameMode === GameMode.ElasticClash && p.hp <= 0 && p.isAlive) {
+                  p.isAlive = false; p.dying = DEATH_ANIMATION_FRAMES;
+                  lastEliminatedPlayerRef.current = p; eliminationOrderRef.current.push({...p});
+                  addHitEffect(p.x, p.y, '#ff4444', 'meteor');
+                }
                 
                 p.x = nx; p.y = ny; p.vx = nVx; p.vy = nVy;
             }
@@ -535,7 +554,11 @@ export const useBattleEngine = (
                 }
 
                 // 2. Draw Image or Placeholder
-                const showImages = alCount <= 2500;
+                // Aumentamos o limite para 4000 para melhor visual em batalhas grandes
+                // E garantimos que o jogador SEGUIDO sempre mostre a imagem, independente do total
+                const isFollowed = p.id === followedPlayerId;
+                const showImages = alCount <= 4000 || isFollowed;
+                
                 if (showImages && p.isAlive) {
                     const img = p.image;
                     if (img && isImageUsable(img)) {
