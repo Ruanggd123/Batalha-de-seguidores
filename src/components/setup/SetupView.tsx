@@ -243,6 +243,23 @@ const SetupView: React.FC<SetupViewProps> = (props) => {
                     <h3 className="text-xl font-black text-red-500 uppercase tracking-tighter">Funcionalidade Desativada</h3>
                     <p className="text-sm text-gray-400 max-w-xs">A busca automática de seguidores via robô está desativada temporariamente. Por favor, utilize a opção de carregar arquivo abaixo.</p>
                 </div>
+
+                {/* BOTÃO DE TESTE DE 50K - NOVO */}
+                <div className="mt-4 w-full">
+                    <button 
+                        onClick={startSpectatorMode}
+                        className="w-full group relative overflow-hidden bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 p-[2px] rounded-xl transition-all hover:scale-[1.02] active:scale-95 shadow-[0_0_20px_rgba(168,85,247,0.4)]"
+                    >
+                        <div className="bg-black/80 rounded-[10px] py-4 px-6 relative z-10 font-black font-orbitron text-white flex items-center justify-center gap-3">
+                            <span className="text-2xl group-hover:animate-bounce">🚀</span>
+                            <div className="flex flex-col items-start leading-none">
+                                <span className="text-[10px] text-purple-400 uppercase tracking-widest mb-1 opacity-80">Modo Demo / Stress Test</span>
+                                <span className="text-sm sm:text-lg">TESTAR ARENA (50.000 LUTADORES)</span>
+                            </div>
+                        </div>
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
+                    </button>
+                </div>
                 
                 {botStatus !== 'idle' && (
                     <div className="w-full mt-4 bg-black/80 rounded-lg p-3 h-32 overflow-y-auto font-mono text-[10px] border border-white/10">
