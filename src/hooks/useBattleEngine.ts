@@ -120,9 +120,9 @@ export const useBattleEngine = (
 
     if (isSuddenDeath) {
         const toKill = Math.min(currentCount - 1, Math.max(1, Math.ceil((currentCount - 1) / 8)));
-        for (let i = 1; i <= toKill; i++) {
-            const p = alivePlayers[i];
-            if (!p) continue;
+        const victims = [...alivePlayers].sort(() => Math.random() - 0.5).slice(0, toKill);
+        
+        for (const p of victims) {
             p.hp = 0; p.isAlive = false; p.dying = DEATH_ANIMATION_FRAMES;
             lastEliminatedPlayerRef.current = p;
             eliminationOrderRef.current.push({ ...p });
@@ -133,8 +133,9 @@ export const useBattleEngine = (
 
     if (isMassacre) {
         const toKill = Math.min(currentCount - 10, Math.max(1, Math.ceil((currentCount - 10) * 0.05)));
-        for (let i = currentCount - 1; i >= currentCount - toKill; i--) {
-            const p = alivePlayers[i];
+        const victims = [...alivePlayers].sort(() => Math.random() - 0.5).slice(0, toKill);
+
+        for (const p of victims) {
             if (!p || !p.isAlive) continue;
             p.hp = 0; p.isAlive = false; p.dying = DEATH_ANIMATION_FRAMES;
             lastEliminatedPlayerRef.current = p;

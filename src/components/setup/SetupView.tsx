@@ -238,113 +238,17 @@ const SetupView: React.FC<SetupViewProps> = (props) => {
                     </div>
                 )}
 
-                <div className="mt-4 flex flex-col items-center gap-4 bg-black/40 p-6 rounded-xl border border-white/10">
-                    <div className="w-full flex flex-col sm:flex-row gap-2">
-                        <input 
-                            type="text" 
-                            value={instagramSearch}
-                            onChange={(e) => setInstagramSearch(e.target.value)}
-                            placeholder="@seu_instagram"
-                            className="flex-grow bg-black/40 border border-white/20 rounded-lg p-3 text-white font-mono focus:outline-none focus:border-pink-500"
-                        />
-                        <button 
-                             onClick={() => {
-                                 const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-                                 if (isLocal) {
-                                     scrapeFromBot(instagramSearch);
-                                 } else {
-                                     triggerGithubAction(instagramSearch);
-                                 }
-                             }} 
-                             disabled={botStatus === 'running' || !instagramSearch || !isAuthorized}
-                             className={`bg-gradient-to-r from-pink-600 to-purple-600 hover:scale-105 text-white font-black py-3 px-6 rounded-lg transition-all disabled:opacity-50 disabled:grayscale flex items-center justify-center gap-2`}>
-                            {botStatus === 'running' && <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>}
-                            {botStatus === 'running' ? 'RODANDO...' : (isAuthorized ? 'INICIAR ROBÔ' : 'BLOQUEADO')}
-                        </button>
+                <div className="mt-4 flex flex-col items-center justify-center gap-4 bg-black/60 p-10 rounded-xl border border-red-500/30 text-center animate-pulse">
+                    <div className="text-4xl mb-2">🚫</div>
+                    <h3 className="text-xl font-black text-red-500 uppercase tracking-tighter">Funcionalidade Desativada</h3>
+                    <p className="text-sm text-gray-400 max-w-xs">A busca automática de seguidores via robô está desativada temporariamente. Por favor, utilize a opção de carregar arquivo abaixo.</p>
+                </div>
+                
+                {botStatus !== 'idle' && (
+                    <div className="w-full mt-4 bg-black/80 rounded-lg p-3 h-32 overflow-y-auto font-mono text-[10px] border border-white/10">
+                        {botLogs.map((log, idx) => <div key={idx} className="text-gray-400 mb-1">{log}</div>)}
                     </div>
-                    {(() => {
-                        const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-                        if (!isAuthorized) return <p className="text-[9px] text-blue-400 font-bold uppercase tracking-widest text-center">Insira uma chave para liberar a extração automática</p>;
-                        
-                        if (!isLocal) return (
-                            <div className="w-full space-y-4">
-                                {listMetadata && (
-                                    <div className="bg-blue-500/10 border border-blue-500/20 p-3 rounded-xl text-[10px] text-blue-300 flex justify-between items-center animate-fade-in shadow-inner">
-                                        <div className="flex flex-col gap-0.5">
-                                            <span className="font-black text-blue-400 uppercase tracking-wider">📊 ÚLTIMA LISTA: @{listMetadata.username}</span>
-                                            <span className="opacity-70 font-mono italic">{new Date(listMetadata.lastUpdate).toLocaleString('pt-BR')}</span>
-                                        </div>
-                                        <div className="text-right">
-                                            <span className="text-xl font-black text-white">{listMetadata.count}</span>
-                                            <span className="block text-[7px] font-bold opacity-60 uppercase tracking-tighter">Seguidores</span>
-                                        </div>
-                                    </div>
-                                )}
-
-                                {botStatus === 'running' && (
-                                    <div className="flex items-center gap-2 px-4 py-2.5 bg-yellow-500/15 border border-yellow-500/30 rounded-xl animate-pulse shadow-[0_0_15px_rgba(234,179,8,0.1)]">
-                                        <div className="w-2.5 h-2.5 bg-yellow-500 rounded-full shadow-[0_0_8px_rgba(234,179,8,1)]"></div>
-                                        <span className="text-[10px] font-black text-yellow-500 uppercase tracking-tighter">Robô em Processamento no GitHub Actions...</span>
-                                    </div>
-                                )}
-
-                                <div className="text-center space-y-1">
-                                    <p className="text-[10px] text-yellow-500 font-bold uppercase tracking-widest px-2 py-1 bg-yellow-500/10 rounded border border-yellow-500/20">🚀 O robô agora é 100% automático via GitHub API</p>
-                                </div>
-                                <button 
-                                    onClick={() => loadInstagramData(true)} 
-                                    disabled={isAutoLoading}
-                                    className={`w-full bg-blue-600 hover:bg-blue-500 hover:scale-105 text-white font-black py-4 px-6 rounded-lg transition-all border-b-4 border-blue-800 active:border-b-0 active:translate-y-1 relative overflow-hidden group ${isAutoLoading ? 'opacity-50 grayscale cursor-not-allowed' : ''}`}>
-                                    <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
-                                    <div className="flex items-center justify-center gap-2">
-                                        {isAutoLoading && <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>}
-                                        {isAutoLoading ? 'LENDO ARQUIVO...' : '📥 RECARREGAR LISTA ATUALIZADA'}
-                                    </div>
-                                </button>
-
-                                {listMetadata && preloadingProgress < 100 && (
-                                    <div className="w-full bg-gray-800 rounded-full h-1.5 mt-2 overflow-hidden border border-white/5">
-                                        <div 
-                                            className="bg-blue-500 h-full transition-all duration-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]" 
-                                            style={{ width: `${preloadingProgress}%` }}
-                                        ></div>
-                                    </div>
-                                )}
-
-                                <div className="grid grid-cols-2 gap-2 mt-2">
-                                    {botStatus === 'running' ? (
-                                        <div className="bg-gray-800/50 text-[10px] font-bold text-yellow-500 py-3 px-3 rounded-xl text-center border border-yellow-500/20 flex flex-col items-center justify-center animate-pulse">
-                                            <span>⏳ AGUARDE...</span>
-                                            <span className="text-[7px] uppercase opacity-60">Novo arquivo será gerado</span>
-                                        </div>
-                                    ) : (
-                                        <a 
-                                            href={`./followers.json?t=${Date.now()}`} 
-                                            download="followers.json"
-                                            className="bg-green-600 hover:bg-green-500 text-[11px] font-black text-white py-3 px-3 rounded-xl text-center border-b-4 border-green-800 active:border-b-0 active:translate-y-1 transition-all flex items-center justify-center gap-1"
-                                        >
-                                            💾 BAIXAR LISTA (JSON)
-                                        </a>
-                                    )}
-                                    <a 
-                                        href="https://github.com/Ruanggd123/Batalha-de-seguidores/actions" 
-                                        target="_blank" 
-                                        rel="noreferrer"
-                                        className="bg-gray-800 hover:bg-gray-700 text-[11px] font-bold text-gray-300 py-3 px-3 rounded-xl text-center border border-white/10 flex items-center justify-center gap-1"
-                                    >
-                                        👁️ STATUS DO ROBô
-                                    </a>
-                                </div>
-                            </div>
-                        );
-                        return null;
-                    })()}
-                    
-                    {botStatus !== 'idle' && (
-                        <div className="w-full mt-4 bg-black/80 rounded-lg p-3 h-32 overflow-y-auto font-mono text-[10px] border border-white/10">
-                            {botLogs.map((log, idx) => <div key={idx} className="text-gray-400 mb-1">{log}</div>)}
-                        </div>
-                    )}
+                )}
                 </div>
 
                 <div className="mt-8 space-y-4">
@@ -363,7 +267,6 @@ const SetupView: React.FC<SetupViewProps> = (props) => {
                     CARREGAR DADOS COLADOS
                   </button>
                 </div>
-             </div>
           </div>
         </div>
       </div>

@@ -21,7 +21,7 @@ const App: React.FC = () => {
   // 1. Hooks initialization
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageCache = useRef<Record<string, HTMLImageElement>>({});
-  const [targetDuration, setTargetDuration] = useState(30);
+  const [targetDuration, setTargetDuration] = useState(60);
   const [preloadingProgress, setPreloadingProgress] = useState(0);
 
   // Audio Hook - provides playBeep, narrateText, etc.
