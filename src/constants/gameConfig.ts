@@ -48,9 +48,14 @@ export const SPAWN_INTERVAL_MS = 16; // 60fps-ish
 
 export const BGM_PLAYLIST = [
   { url: 'audio/battle-bgm.mp3', title: 'Epic Battle (Local)' },
-  { url: 'https://raw.githubusercontent.com/the-muda-house/BattleRoyaleResources/main/music/action_rock.mp3', title: 'Power Rush (Stable)' },
-  { url: 'https://raw.githubusercontent.com/the-muda-house/BattleRoyaleResources/main/music/epic_glory.mp3', title: 'Glory (Stable)' },
-  { url: 'https://raw.githubusercontent.com/the-muda-house/BattleRoyaleResources/main/music/combat_clash.mp3', title: 'Combat Clash (Stable)' }
+  { url: 'https://raw.githubusercontent.com/the-muda-house/BattleRoyaleResources/main/music/action_rock.mp3', title: 'Power Rush (Premium)' },
+  { url: 'https://raw.githubusercontent.com/the-muda-house/BattleRoyaleResources/main/music/epic_glory.mp3', title: 'Glory Anthem (Premium)' },
+  { url: 'https://raw.githubusercontent.com/the-muda-house/BattleRoyaleResources/main/music/combat_clash.mp3', title: 'Combat Clash' },
+  { url: 'https://raw.githubusercontent.com/the-muda-house/BattleRoyaleResources/main/music/night_warrior.mp3', title: 'Noite de Guerra (Epic)' },
+  { url: 'https://raw.githubusercontent.com/the-muda-house/BattleRoyaleResources/main/music/metal_clash.mp3', title: 'Colisão de Metal (Fast)' },
+  { url: 'https://raw.githubusercontent.com/the-muda-house/BattleRoyaleResources/main/music/sky_battle.mp3', title: 'Batalha nos Céus' },
+  { url: 'https://raw.githubusercontent.com/the-muda-house/BattleRoyaleResources/main/music/boss_slayer.mp3', title: 'Matador de Chefes (Dramatic)' },
+  { url: 'https://raw.githubusercontent.com/the-muda-house/BattleRoyaleResources/main/music/cybernetic_clash.mp3', title: 'Conflito Cibernético (Cyber)' }
 ];
 
 export const gameModeDetails = {
