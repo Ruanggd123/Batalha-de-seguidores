@@ -7,8 +7,6 @@ on:
         description: 'Seu usuário do Instagram (sem @)'
         required: true
         default: 'ruanggd123'
-  schedule:
-    - cron: '0 0 * * *' # Executa todo dia à meia-noite (UTC)
 
 permissions:
   contents: write
